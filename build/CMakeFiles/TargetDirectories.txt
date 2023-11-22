@@ -1,0 +1,3 @@
+D:/projects/vccode/billard/build/CMakeFiles/Billard.dir
+D:/projects/vccode/billard/build/CMakeFiles/ALL_BUILD.dir
+D:/projects/vccode/billard/build/CMakeFiles/ZERO_CHECK.dir

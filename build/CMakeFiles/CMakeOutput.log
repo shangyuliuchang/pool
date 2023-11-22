@@ -1,0 +1,175 @@
+The system is: Windows - 10.0.19045 - AMD64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: E:/program/mingw/posix/mingw64/bin/gcc.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.exe"
+
+The C compiler identification is GNU, found in "D:/projects/vccode/billard/build/CMakeFiles/3.15.2/CompilerIdC/a.exe"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: E:/program/mingw/posix/mingw64/bin/c++.exe 
+Build flags: 
+Id flags:  
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.exe"
+
+The CXX compiler identification is GNU, found in "D:/projects/vccode/billard/build/CMakeFiles/3.15.2/CompilerIdCXX/a.exe"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: D:/projects/vccode/billard/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):D:/program/vs/vs_install/MSBuild/15.0/Bin/MSBuild.exe cmTC_136d2.vcxproj /p:Configuration=Debug /p:Platform=Win32 /p:VisualStudioVersion=15.0 /v:m && 用于 .NET Framework 的 Microsoft (R) 生成引擎版本 15.9.21+g9802d43bc3
+版权所有(C) Microsoft Corporation。保留所有权利。
+
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 19.16.27040 版
+  版权所有(C) Microsoft Corporation。保留所有权利。
+  
+  cl /c /W1 /WX- /diagnostics:classic /sdl- /O2 /Oy- /D "CMAKE_INTDIR=\"Debug\"" /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING /D _MBCS /Gm- /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_136d2.dir\Debug\\" /Fd"cmTC_136d2.dir\Debug\vc141.pdb" /Gd /TC /analyze- /errorReport:queue  -g D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\testCCompiler.c
+  testCCompiler.c
+  
+cl : 命令行 warning D9002: 忽略未知选项“-g” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lkernel32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/luser32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lgdi32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lwinspool”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lshell32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lole32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/loleaut32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/luuid”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lcomdlg32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/ladvapi32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_136d2.vcxproj]
+  cmTC_136d2.vcxproj -> D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\Debug\cmTC_136d2.exe
+
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: D:/projects/vccode/billard/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):D:/program/vs/vs_install/MSBuild/15.0/Bin/MSBuild.exe cmTC_84ef5.vcxproj /p:Configuration=Debug /p:Platform=Win32 /p:VisualStudioVersion=15.0 /v:m && 用于 .NET Framework 的 Microsoft (R) 生成引擎版本 15.9.21+g9802d43bc3
+版权所有(C) Microsoft Corporation。保留所有权利。
+
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 19.16.27040 版
+  版权所有(C) Microsoft Corporation。保留所有权利。
+  
+  cl /c /W1 /WX- /diagnostics:classic /sdl- /O2 /Oy- /D "CMAKE_INTDIR=\"Debug\"" /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING /D _MBCS /Gm- /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_84ef5.dir\Debug\\" /Fd"cmTC_84ef5.dir\Debug\vc141.pdb" /Gd /TC /analyze- /errorReport:queue  -g -v "D:\program\cmake\share\cmake-3.15\Modules\CMakeCCompilerABI.c"
+  CMakeCCompilerABI.c
+  
+cl : 命令行 warning D9002: 忽略未知选项“-g” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_84ef5.vcxproj]
+cl : 命令行 warning D9002: 忽略未知选项“-v” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_84ef5.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/v”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_84ef5.vcxproj]
+  cmTC_84ef5.vcxproj -> D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\Debug\cmTC_84ef5.exe
+
+
+
+Parsed C implicit include dir info from above output: rv=start
+  warn: unable to parse implicit include dirs!
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld\.exe|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: D:/projects/vccode/billard/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):D:/program/vs/vs_install/MSBuild/15.0/Bin/MSBuild.exe cmTC_84ef5.vcxproj /p:Configuration=Debug /p:Platform=Win32 /p:VisualStudioVersion=15.0 /v:m && 用于 .NET Framework 的 Microsoft (R) 生成引擎版本 15.9.21+g9802d43bc3]
+  ignore line: [版权所有(C) Microsoft Corporation。保留所有权利。]
+  ignore line: []
+  ignore line: [  用于 x86 的 Microsoft (R) C/C++ 优化编译器 19.16.27040 版]
+  ignore line: [  版权所有(C) Microsoft Corporation。保留所有权利。]
+  ignore line: [  ]
+  ignore line: [  cl /c /W1 /WX- /diagnostics:classic /sdl- /O2 /Oy- /D "CMAKE_INTDIR=\"Debug\"" /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING /D _MBCS /Gm- /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_84ef5.dir\Debug\\" /Fd"cmTC_84ef5.dir\Debug\vc141.pdb" /Gd /TC /analyze- /errorReport:queue  -g -v "D:\program\cmake\share\cmake-3.15\Modules\CMakeCCompilerABI.c"]
+  ignore line: [  CMakeCCompilerABI.c]
+  ignore line: [  ]
+  ignore line: [cl : 命令行 warning D9002: 忽略未知选项“-g” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_84ef5.vcxproj]]
+  ignore line: [cl : 命令行 warning D9002: 忽略未知选项“-v” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_84ef5.vcxproj]]
+  ignore line: [LINK : warning LNK4044: 无法识别的选项“/v”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_84ef5.vcxproj]]
+  ignore line: [  cmTC_84ef5.vcxproj -> D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\Debug\cmTC_84ef5.exe]
+  ignore line: []
+  ignore line: []
+  implicit libs: []
+  implicit dirs: []
+  implicit fwks: []
+
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: D:/projects/vccode/billard/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):D:/program/vs/vs_install/MSBuild/15.0/Bin/MSBuild.exe cmTC_851a7.vcxproj /p:Configuration=Debug /p:Platform=Win32 /p:VisualStudioVersion=15.0 /v:m && 用于 .NET Framework 的 Microsoft (R) 生成引擎版本 15.9.21+g9802d43bc3
+版权所有(C) Microsoft Corporation。保留所有权利。
+
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 19.16.27040 版
+  版权所有(C) Microsoft Corporation。保留所有权利。
+  
+  cl /c /W1 /WX- /diagnostics:classic /sdl- /O2 /Oy- /D "CMAKE_INTDIR=\"Debug\"" /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING /D _MBCS /Gm- /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_851a7.dir\Debug\\" /Fd"cmTC_851a7.dir\Debug\vc141.pdb" /Gd /TP /analyze- /errorReport:queue  -g D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\testCXXCompiler.cxx
+  testCXXCompiler.cxx
+  
+cl : 命令行 warning D9002: 忽略未知选项“-g” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lkernel32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/luser32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lgdi32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lwinspool”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lshell32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lole32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/loleaut32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/luuid”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/lcomdlg32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/ladvapi32”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_851a7.vcxproj]
+  cmTC_851a7.vcxproj -> D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\Debug\cmTC_851a7.exe
+
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: D:/projects/vccode/billard/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):D:/program/vs/vs_install/MSBuild/15.0/Bin/MSBuild.exe cmTC_dae67.vcxproj /p:Configuration=Debug /p:Platform=Win32 /p:VisualStudioVersion=15.0 /v:m && 用于 .NET Framework 的 Microsoft (R) 生成引擎版本 15.9.21+g9802d43bc3
+版权所有(C) Microsoft Corporation。保留所有权利。
+
+  用于 x86 的 Microsoft (R) C/C++ 优化编译器 19.16.27040 版
+  版权所有(C) Microsoft Corporation。保留所有权利。
+  
+  cl /c /W1 /WX- /diagnostics:classic /sdl- /O2 /Oy- /D "CMAKE_INTDIR=\"Debug\"" /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING /D _MBCS /Gm- /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_dae67.dir\Debug\\" /Fd"cmTC_dae67.dir\Debug\vc141.pdb" /Gd /TP /analyze- /errorReport:queue  -g -v "D:\program\cmake\share\cmake-3.15\Modules\CMakeCXXCompilerABI.cpp"
+  CMakeCXXCompilerABI.cpp
+  
+cl : 命令行 warning D9002: 忽略未知选项“-g” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_dae67.vcxproj]
+cl : 命令行 warning D9002: 忽略未知选项“-v” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_dae67.vcxproj]
+LINK : warning LNK4044: 无法识别的选项“/v”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_dae67.vcxproj]
+  cmTC_dae67.vcxproj -> D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\Debug\cmTC_dae67.exe
+
+
+
+Parsed CXX implicit include dir info from above output: rv=start
+  warn: unable to parse implicit include dirs!
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld\.exe|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: D:/projects/vccode/billard/build/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command(s):D:/program/vs/vs_install/MSBuild/15.0/Bin/MSBuild.exe cmTC_dae67.vcxproj /p:Configuration=Debug /p:Platform=Win32 /p:VisualStudioVersion=15.0 /v:m && 用于 .NET Framework 的 Microsoft (R) 生成引擎版本 15.9.21+g9802d43bc3]
+  ignore line: [版权所有(C) Microsoft Corporation。保留所有权利。]
+  ignore line: []
+  ignore line: [  用于 x86 的 Microsoft (R) C/C++ 优化编译器 19.16.27040 版]
+  ignore line: [  版权所有(C) Microsoft Corporation。保留所有权利。]
+  ignore line: [  ]
+  ignore line: [  cl /c /W1 /WX- /diagnostics:classic /sdl- /O2 /Oy- /D "CMAKE_INTDIR=\"Debug\"" /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING /D _MBCS /Gm- /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"cmTC_dae67.dir\Debug\\" /Fd"cmTC_dae67.dir\Debug\vc141.pdb" /Gd /TP /analyze- /errorReport:queue  -g -v "D:\program\cmake\share\cmake-3.15\Modules\CMakeCXXCompilerABI.cpp"]
+  ignore line: [  CMakeCXXCompilerABI.cpp]
+  ignore line: [  ]
+  ignore line: [cl : 命令行 warning D9002: 忽略未知选项“-g” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_dae67.vcxproj]]
+  ignore line: [cl : 命令行 warning D9002: 忽略未知选项“-v” [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_dae67.vcxproj]]
+  ignore line: [LINK : warning LNK4044: 无法识别的选项“/v”；已忽略 [D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\cmTC_dae67.vcxproj]]
+  ignore line: [  cmTC_dae67.vcxproj -> D:\projects\vccode\billard\build\CMakeFiles\CMakeTmp\Debug\cmTC_dae67.exe]
+  ignore line: []
+  ignore line: []
+  implicit libs: []
+  implicit dirs: []
+  implicit fwks: []
+
+
