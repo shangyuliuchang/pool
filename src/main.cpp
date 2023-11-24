@@ -10,14 +10,15 @@ using namespace std;
 #include"../inc/ball.hpp"
 #include"../inc/main.hpp"
 #include"../inc/calc.hpp"
-int win, allowHit, planeBAO, planeVBO, planeEBO;
-float viewYaw = 0.0f, viewPitch = 0.0f, viewDistance = 0.6f, hitDistance = 0.0f, hitSpeed = 0.0f;
+int win, allowHit = 3, mouseState;
+float viewYaw = 0.0f, viewPitch = 0.0f, viewDistance = 1.5f, hitDistance = 0.0f, hitSpeed = 0.0f;
+float hitYaw = 0.0f, hitPitch = 0.0f;
 float viewX = 0.0f, viewY = 0.0f, viewZ = 0.0f;
 float rotateAmount = 0.0;
 float calcTime = 0.02f;
 unsigned int texture[16];
-vector<float> coords, norm, tex, ballX, ballY, ballZ, ballNX, ballNY, ballNZ, ballCoord, ballNorm, ballTex;
-vector<unsigned int> index, normIndex, texIndex, ballCoordIndex, ballNormIndex, ballTexIndex;
+vector<float> planeCoord, planeNorm, planeTex, ballX, ballY, ballZ, ballNX, ballNY, ballNZ, ballCoord, ballNorm, ballTex, cueCoord, cueNorm, cueTex;
+vector<unsigned int> planeCoordIndex, planeNormIndex, planeTexIndex, ballCoordIndex, ballNormIndex, ballTexIndex, cueNormIndex, cueCoordIndex, cueTexIndex;
 GLfloat color[4];
 struct timespec tStart;
 struct timespec tEnd;
@@ -115,7 +116,7 @@ void drawPlane(){
     glTranslatef(0.0f, -balls[0].r, 0.0f);
     glColor4f(0.2f, 0.4f, 0.2f, 1.0f);
     glBegin(GL_TRIANGLES);
-    drawTriangle(index, normIndex, texIndex, coords, norm, tex);
+    drawTriangle(planeCoordIndex, planeNormIndex, planeTexIndex, planeCoord, planeNorm, planeTex);
     glEnd();
 
     glEnable(GL_BLEND);
@@ -203,12 +204,18 @@ void display(){
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(40.0f, 4.0f / 3.0f, 0.1f, 50.0f);
-    viewX = viewX * 0.95f + balls[0].x * 0.05f;
-    viewY = viewY * 0.95f + balls[0].y * 0.05f;
-    viewZ = viewZ * 0.95f + balls[0].z * 0.05f;
-    gluLookAt(viewX + viewDistance * cosf(viewPitch) * cos(viewYaw), viewZ + viewDistance * sinf(viewPitch), -viewY - viewDistance * cosf(viewPitch) * sinf(viewYaw), viewX, viewZ, -viewY, 0.0f, 1.0f, 0.0f);
-    glViewport(0, -WINDOW_HEIGHT / 2, WINDOW_WIDTH, 1.5f * WINDOW_HEIGHT);
+    if(allowHit == 2){
+        gluPerspective(20.0f, 2.0f, 0.1f, 50.0f);
+        gluLookAt(0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f);
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    }else{
+        gluPerspective(20.0f, 4.0f / 3.0f, 0.1f, 50.0f);
+        viewX = viewX * 0.95f + balls[0].x * 0.05f;
+        viewY = viewY * 0.95f + balls[0].y * 0.05f;
+        viewZ = viewZ * 0.95f + balls[0].z * 0.05f;
+        gluLookAt(viewX + viewDistance * cosf(viewPitch) * cosf(viewYaw), viewZ + viewDistance * sinf(viewPitch), -viewY - viewDistance * cosf(viewPitch) * sinf(viewYaw), viewX, viewZ, -viewY, 0.0f, 1.0f, 0.0f);
+        glViewport(0, -WINDOW_HEIGHT / 2, WINDOW_WIDTH, 1.5f * WINDOW_HEIGHT);
+    }
     glMatrixMode(GL_MODELVIEW);
 
     drawPlane();
@@ -245,6 +252,19 @@ void display(){
         glEnd();
     }
     glDisable(GL_BLEND);
+
+    if(allowHit == 3){
+        glLoadIdentity();
+        glTranslatef(balls[0].x + (balls[0].r) * cosf(hitPitch) * cosf(viewYaw + hitYaw), balls[0].r * sinf(hitPitch), -(balls[0].y + (balls[0].r) * cosf(hitPitch) * sinf(viewYaw + hitYaw)));
+        glRotatef(viewYaw / PI * 180, 0.0f, 1.0f, 0.0f);
+        glRotatef(95.0f, 0.0f, 0.0f, 1.0f);
+        glTranslatef(0.0f, hitDistance, 0.0f);
+        glColor4f(0.2f, 0.2f, 0.2f, 0.0f);
+        glBegin(GL_TRIANGLES);
+        drawTriangle(cueCoordIndex, cueNormIndex, cueTexIndex, cueCoord, cueNorm, cueTex);
+        glEnd();
+    }
+
     glutSwapBuffers();
 }
 void movement(int input){
@@ -258,8 +278,22 @@ void movement(int input){
         clock_gettime(CLOCK_MONOTONIC, &tEnd);
     }
     clock_gettime(CLOCK_MONOTONIC, &tStart);
+
+    if(allowHit == 1){
+        allowHit = 2;
+        for(int i=0;i<balls.size();i++){
+            if(fabsf(balls[i].vx) > epsilon || fabsf(balls[i].vy) > epsilon || fabsf(balls[i].wx) > epsilon || fabsf(balls[i].wy) > epsilon || fabsf(balls[i].wz) > epsilon){
+                allowHit = 1;
+                break;
+            }
+        }
+        if(allowHit == 2 && balls[0].x < edgeX){
+            allowHit = 3;
+        }
+    }
+
     display();
-    collision(calcTime);
+    if(allowHit != 2) collision(calcTime);
     glutTimerFunc(1, movement, 0);
 }
 void init(){
@@ -306,43 +340,83 @@ void keyBoard(unsigned char key, int x, int y){
         init();
     }else if(key == 'q'){
         exit(0);
-    }else if(key <= '9' && key >='1'){
-        rotateAmount = ((int)key - '5') * 0.05f;
+    }else if(key == '0'){
+        hitYaw = hitPitch = 0.0f;
     }
 }
 void passiveMotion(int x, int y){
-    viewYaw -= (x - WINDOW_WIDTH / 2) * 1e-3f;
-    viewPitch += (y - WINDOW_HEIGHT / 2) * 1e-3f;
-    if(viewYaw > 2.0f * PI)
-        viewYaw -= 2.0f * PI;
-    else if(viewYaw < -2.0f * PI)
-        viewYaw += 2.0f * PI;
-    if(viewPitch < 0.0f)
-        viewPitch = 0.0f;
-    else if(viewPitch > 0.5f * PI)
-        viewPitch = 0.5f * PI;
-    allowHit = 1;
-    hitDistance = 0.0f;
-    hitSpeed = 0.0f;
+    if(allowHit != 2){
+        viewYaw -= (x - WINDOW_WIDTH / 2) * 1e-3f;
+        viewPitch += (y - WINDOW_HEIGHT / 2) * 1e-3f;
+        if(viewYaw > 2.0f * PI)
+            viewYaw -= 2.0f * PI;
+        else if(viewYaw < -2.0f * PI)
+            viewYaw += 2.0f * PI;
+        if(viewPitch < 0.0f)
+            viewPitch = 0.0f;
+        else if(viewPitch > 0.5f * PI)
+            viewPitch = 0.5f * PI;
+        hitDistance = 0.0f;
+        hitSpeed = 0.0f;
+    }else{
+        balls[0].x += (float)(x - WINDOW_WIDTH / 2) / WINDOW_WIDTH * edgeX * 2.0f;
+        balls[0].y += -(float)(y - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT * edgeY * 2.0f;
+        if(balls[0].x > edgeX - balls[0].r) balls[0].x = edgeX - balls[0].r;
+        else if(balls[0].x < -edgeX + balls[0].r) balls[0].x = -edgeX + balls[0].r;
+        if(balls[0].y > edgeY - balls[0].r) balls[0].y = edgeY - balls[0].r;
+        else if(balls[0].y < -edgeY + balls[0].r) balls[0].y = -edgeY + balls[0].r;
+    }
     glutWarpPointer(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 }
 void motion(int x, int y){
-    if(allowHit){
-        hitDistance += (WINDOW_HEIGHT / 2 - y) * 0.15f;
-        hitSpeed = hitSpeed * 0.8f + (WINDOW_HEIGHT / 2 - y) * 0.15f * 0.2f;
-        if(hitDistance > 0.0f){
-            if(hitSpeed > 10.0f) hitSpeed = 10.0f;
-            balls[0].vx = -hitSpeed * cosf(viewYaw);
-            balls[0].vy = -hitSpeed * sinf(viewYaw);
-            balls[0].wx = rotateAmount * balls[0].r * hitSpeed * balls[0].m / balls[0].I * sinf(viewYaw);
-            balls[0].wy = rotateAmount * balls[0].r * hitSpeed * balls[0].m / balls[0].I * -cosf(viewYaw);
-            balls[0].wz = 0.0f;
-            allowHit = 0;
+    if(mouseState == 1){
+        if(allowHit == 3){
+            hitSpeed = hitSpeed * 0.8f + (WINDOW_HEIGHT / 2 - y) * 5e-3f / calcTime * 0.2f;
+            hitDistance += hitSpeed * calcTime;
+            if(hitDistance > 0.0f){
+                if(hitSpeed > 10.0f) hitSpeed = 10.0f;
+                hitBall(viewYaw + hitYaw, hitPitch, -hitSpeed * cosf(5 / 180 * PI) * cosf(viewYaw), -hitSpeed * cosf(5 / 180 * PI) * sinf(viewYaw), -hitSpeed * sinf(5 / 180 * PI));
+                allowHit = 0;
+            }
+        }
+    }else if(mouseState == 2){
+        if(allowHit != 2){
+            viewDistance += (y - WINDOW_HEIGHT / 2) * 0.01f;
+            if(viewDistance > 3.0f) viewDistance = 3.0f;
+            else if(viewDistance < 0.5f) viewDistance = 0.5f;
+        }
+    }else{
+        if(allowHit == 3){
+            hitPitch += (WINDOW_HEIGHT / 2 - y) * 1e-2f;
+            if(hitPitch > PI / 4.0f) hitPitch = PI / 4.0f;
+            else if(hitPitch < -PI / 4.0f) hitPitch = -PI / 4.0f;
+            hitYaw += (x - WINDOW_WIDTH / 2) * 1e-2f;
+            if(hitYaw > PI / 4.0f) hitYaw = PI / 4.0f;
+            else if(hitYaw < -PI / 4.0f) hitYaw = -PI / 4.0f;
         }
     }
     glutWarpPointer(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 }
 void mouse(int button, int state, int x, int y){
+    int allowPlace;
+    if(state == 0){
+        mouseState = button + 1;
+        if(allowHit == 2){
+            allowPlace = 1;
+            for(int i=1;i<=15;i++){
+                if(powf(balls[0].x - balls[i].x, 2) + powf(balls[0].y - balls[i].y, 2) <= powf(2 * balls[0].r, 2)){
+                    allowPlace = 0;
+                    break;
+                }
+            }
+            if(allowPlace){
+                allowHit = 3;
+            }
+        }
+    }else{
+        mouseState = 0;
+        if(allowHit == 0) allowHit = 1;
+    }
 }
 void readOBJ(const char dir[], vector<float> &c, vector<float> &n, vector<float> &t, vector<unsigned int> &ic, vector<unsigned int> &in, vector<unsigned int> &it){
     FILE *fp = fopen(dir, "r");
@@ -400,8 +474,9 @@ int main(int argc, char *argv[]){
     GLfloat lightSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
     char dir[100];
     init();
-    readOBJ("D:/projects/vccode/billard/mat/plane.obj", coords, norm, tex, index, normIndex, texIndex);
-    readOBJ("D:/projects/vccode/billard/mat/ball.obj", ballCoord, ballNorm, ballTex, ballCoordIndex, ballNormIndex, ballTexIndex);
+    readOBJ("../mat/plane.obj", planeCoord, planeNorm, planeTex, planeCoordIndex, planeNormIndex, planeTexIndex);
+    readOBJ("../mat/ball.obj", ballCoord, ballNorm, ballTex, ballCoordIndex, ballNormIndex, ballTexIndex);
+    readOBJ("../mat/cue.obj", cueCoord, cueNorm, cueTex, cueCoordIndex, cueNormIndex, cueTexIndex);
     glutInit(&argc, argv);
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -426,7 +501,7 @@ int main(int argc, char *argv[]){
 
     glGenTextures(16, texture);
     for(int i=0;i<=15;i++){
-        sprintf(dir, "D:/projects/vccode/billard/mat/ball%d.jpg", i);
+        sprintf(dir, "../mat/ball%d.jpg", i);
         loadTex(texture + i, dir);
     }
 

@@ -31,10 +31,11 @@ class ball{
         quatY[2] = 1.0f;
     }
 };
-#define mu1 (0.15f) 
+#define mu1 (0.2f) 
 #define mu2 (0.01f)
 #define mu3 (0.05f)
-#define az (12.0f)
+#define mu4 (0.8f)
+#define az (6.0f)
 #define collisionK (0.65f)
 extern vector<ball> balls;
 #endif

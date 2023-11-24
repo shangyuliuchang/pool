@@ -4,6 +4,148 @@
 using namespace std;
 #include"../inc/ball.hpp"
 #include"../inc/main.hpp"
+void hitBall(float yaw, float pitch, float vx, float vy, float vz){
+    float rx, ry, rz, I, vx0, vy0, vz0, v, Ib, rv1, rv2, rvx, rvy, vn, vtx, vty, vtz, wvx, wvy, wvz;
+    float rvx2, rvy2, vtx2, vty2, vtz2, wvx2, wvy2, wvz2;
+    float tmpVx, tmpVy, tmpVz;
+    float Itx, Ity, Itz, Ibx, Iby, It;
+    float currentK, nextK;
+    int state1, state2, state3, state4, reject;
+    ball tmpBall;
+    rx = balls[0].r * cosf(pitch) * cosf(yaw);
+    ry = balls[0].r * cosf(pitch) * sinf(yaw);
+    rz = balls[0].r * sinf(pitch);
+    v = sqrtf(vx * vx + vy * vy + vz * vz);
+    vx0 = vx / v;
+    vy0 = vy / v;
+    vz0 = vz / v;
+    I = -2.0f * (vx * rx + vy * ry + vz * rz) / balls[0].r * 3.0f * balls[0].m;
+    currentK = 0.0f;
+    nextK = 1.0f;
+
+    tmpBall = balls[0];
+    tmpVx = vx;
+    tmpVy = vy;
+    tmpVz = vz;
+    rvx = tmpBall.vx - tmpBall.wy * balls[0].r;
+    rvy = tmpBall.vy + tmpBall.wx * balls[0].r;
+    vn = ((tmpVx - tmpBall.vx) * rx + (tmpVy - tmpBall.vy) * ry + (tmpVz - tmpBall.vz) * rz) / balls[0].r;
+    vtx = (tmpVx - tmpBall.vx) - vn * rx / balls[0].r;
+    vty = (tmpVy - tmpBall.vy) - vn * ry / balls[0].r;
+    vtz = (tmpVz - tmpBall.vz) - vn * rz / balls[0].r;
+    wvx = tmpBall.wy * rz - tmpBall.wz * ry;
+    wvy = tmpBall.wz * rx - tmpBall.wx * rz;
+    wvz = tmpBall.wx * ry - tmpBall.wy * rx;
+    if(fabsf(vtx - wvx) > epsilon || fabsf(vty - wvy) > epsilon || fabsf(vtz - wvz) > epsilon){
+        state1 = 1;
+        rv2 = sqrtf(powf(vtx - wvx, 2) + powf(vty - wvy, 2) + powf(vtz - wvz, 2));
+        Itx = I * mu4 * (vtx - wvx) / rv2;
+        Ity = I * mu4 * (vty - wvy) / rv2;
+        Itz = I * mu4 * (vtz - wvz) / rv2;
+    }else{
+        state1 = 0;
+        Itx = Ity = Itz = 0.0f;
+    }
+    It = (I * rx / balls[0].r - Itx) * vx0 + (I * ry / balls[0].r - Ity) * vy0 + (I * rz / balls[0].r - Itz) * vz0;
+    Ib = I * rz / balls[0].r - Itz;
+    if(Ib < 0.0f) Ib = 0.0f;
+    if(fabsf(rvx) > epsilon || fabsf(rvy) > epsilon){
+        state2 = 1;
+        rv1 = sqrtf(rvx * rvx + rvy * rvy);
+        Ibx = -Ib * mu1 * rvx / rv1;
+        Iby = -Ib * mu1 * rvy / rv1;
+    }else{
+        state2 = 0;
+        Ibx = 0.0f;
+        Iby = 0.0f;
+    }
+    while(currentK < 1.0f){
+        tmpBall.vx += ((-I * rx / balls[0].r + Itx + Ibx) / balls[0].m) * nextK;
+        tmpBall.vy += ((-I * ry / balls[0].r + Ity + Iby) / balls[0].m) * nextK;
+        tmpBall.wx += ((ry * Itz - rz * Ity + Iby * balls[0].r) / balls[0].I) * nextK;
+        tmpBall.wy += ((rz * Itx - rx * Itz - Ibx * balls[0].r) / balls[0].I) * nextK;
+        tmpBall.wz += ((rx * Ity - ry * Itx) / balls[0].I) * nextK;
+        tmpVx += (It * vx0 / (3.0f * balls[0].m) + (I * rx / balls[0].r - Itx - It * vx0) / (cueK * 3.0f * balls[0].m)) * nextK;
+        tmpVy += (It * vy0 / (3.0f * balls[0].m) + (I * ry / balls[0].r - Ity - It * vy0) / (cueK * 3.0f * balls[0].m)) * nextK;
+        tmpVz += (It * vz0 / (3.0f * balls[0].m) + (I * rz / balls[0].r - Itz - It * vz0) / (cueK * 3.0f * balls[0].m)) * nextK;
+
+        reject = 0;
+        rvx2 = tmpBall.vx - tmpBall.wy * balls[0].r;
+        rvy2 = tmpBall.vy + tmpBall.wx * balls[0].r;
+        vn = ((tmpVx - tmpBall.vx) * rx + (tmpVy - tmpBall.vy) * ry + (tmpVz - tmpBall.vz) * rz) / balls[0].r;
+        vtx2 = (tmpVx - tmpBall.vx) - vn * rx / balls[0].r;
+        vty2 = (tmpVy - tmpBall.vy) - vn * ry / balls[0].r;
+        vtz2 = (tmpVz - tmpBall.vz) - vn * rz / balls[0].r;
+        wvx2 = tmpBall.wy * rz - tmpBall.wz * ry;
+        wvy2 = tmpBall.wz * rx - tmpBall.wx * rz;
+        wvz2 = tmpBall.wx * ry - tmpBall.wy * rx;
+        if(state1 == 1 && ((vtx - wvx) * (vtx2 - wvx2) <= 0.0f || (vty - wvy) * (vty2 - wvy2) <= 0.0f || (vtz - wvz) * (vtz2 - wvz2) <= 0.0f)){
+            reject = 1;
+        }else if(state1 == 0 && (fabsf(vtx2 - wvx2) > epsilon || fabsf(vty2 - wvy2) > epsilon || fabsf(vtz2 - wvz2) > epsilon)){
+            reject = 1;
+        }
+        if(state2 == 1 && (rvx * rvx2 <= 0.0f || rvy * rvy2 <= 0.0f)){
+            reject = 1;
+        }else if(state2 == 0 && (fabsf(rvx2) > epsilon || fabsf(rvy2) > epsilon)){
+            reject = 1;
+        }
+        if(((tmpVx - tmpBall.vx) * rx + (tmpVy - tmpBall.vy) * ry + (tmpVz - tmpBall.vz) * rz) / (v * vx0 * rx + v * vy0 * ry + v * vz0 * rz) < -0.6f){
+            reject = 1;
+        }
+        if(reject && nextK > 1e-2f){
+            nextK *= kFail;
+            tmpBall = balls[0];
+            tmpVx = vx;
+            tmpVy = vy;
+            tmpVz = vz;
+        }else{
+            currentK += nextK;
+            balls[0] = tmpBall;
+            vx = tmpVx;
+            vy = tmpVy;
+            vz = tmpVz;
+            nextK *= kSuccess;
+            if(nextK > 1.0f - currentK) nextK = 1.0f - currentK;
+            if(((tmpVx - tmpBall.vx) * rx + (tmpVy - tmpBall.vy) * ry + (tmpVz - tmpBall.vz) * rz) / (v * vx0 * rx + v * vy0 * ry + v * vz0 * rz) < -0.6f){
+                break;
+            }
+            if(currentK < 1.0f){
+                rvx = tmpBall.vx - tmpBall.wy * balls[0].r;
+                rvy = tmpBall.vy + tmpBall.wx * balls[0].r;
+                vn = ((tmpVx - tmpBall.vx) * rx + (tmpVy - tmpBall.vy) * ry + (tmpVz - tmpBall.vz) * rz) / balls[0].r;
+                vtx = (tmpVx - tmpBall.vx) - vn * rx / balls[0].r;
+                vty = (tmpVy - tmpBall.vy) - vn * ry / balls[0].r;
+                vtz = (tmpVz - tmpBall.vz) - vn * rz / balls[0].r;
+                wvx = tmpBall.wy * rz - tmpBall.wz * ry;
+                wvy = tmpBall.wz * rx - tmpBall.wx * rz;
+                wvz = tmpBall.wx * ry - tmpBall.wy * rx;
+                if(fabsf(vtx - wvx) > epsilon || fabsf(vty - wvy) > epsilon || fabsf(vtz - wvz) > epsilon){
+                    state1 = 1;
+                    rv2 = sqrtf(powf(vtx - wvx, 2) + powf(vty - wvy, 2) + powf(vtz - wvz, 2));
+                    Itx = I * mu4 * (vtx - wvx) / rv2;
+                    Ity = I * mu4 * (vty - wvy) / rv2;
+                    Itz = I * mu4 * (vtz - wvz) / rv2;
+                }else{
+                    state1 = 0;
+                    Itx = Ity = Itz = 0.0f;
+                }
+                It = (I * rx / balls[0].r - Itx) * vx0 + (I * ry / balls[0].r - Ity) * vy0 + (I * rz / balls[0].r - Itz) * vz0;
+                Ib = I * rz / balls[0].r - Itz;
+                if(Ib < 0.0f) Ib = 0.0f;
+                if(fabsf(rvx) > epsilon || fabsf(rvy) > epsilon){
+                    state2 = 1;
+                    rv1 = sqrtf(rvx * rvx + rvy * rvy);
+                    Ibx = -Ib * mu1 * rvx / rv1;
+                    Iby = -Ib * mu1 * rvy / rv1;
+                }else{
+                    state2 = 0;
+                    Ibx = 0.0f;
+                    Iby = 0.0f;
+                }
+            }
+        }
+    }
+}
 void updateWithDetect(float t){
     float currentT = 0.0f;
     float tmp, nextT, frictionAngle, ax, ay, rvx, rvy, rvx2, rvy2, v, rv, frictionAngle2, vx, vy, wx, wy;
@@ -58,14 +200,14 @@ void updateWithDetect(float t){
             rvx2 = tmpBall.vx - tmpBall.wy * tmpBall.r;
             rvy2 = tmpBall.vy + tmpBall.wx * tmpBall.r;
             frictionAngle2 = atan2f(rvy2, rvx2);
-            if(state1 == 3 && (rvx2 * rvx < 0.0f || rvy2 * rvy < 0.0f || fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
+            if(state1 == 3 && (rvx2 * rvx <= 0.0f || rvy2 * rvy <= 0.0f || fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
                 reject = 1;
-            }else if(state1 == 2 && (tmpBall.vx * vx < 0.0f || tmpBall.vy * vy < 0.0f || tmpBall.wx * wx < 0.0f || tmpBall.wy * wy < 0.0f)){
+            }else if(state1 == 2 && (tmpBall.vx * vx <= 0.0f || tmpBall.vy * vy <= 0.0f || tmpBall.wx * wx <= 0.0f || tmpBall.wy * wy <= 0.0f)){
                 reject = 1;
             }
 
             if(reject && nextT > 1e-4f){
-                nextT *= 0.5f;
+                nextT *= kFail;
                 tmpBall = balls[i];
             }else{
                 tmpBall.x += tmpBall.vx * nextT + 0.5f * ax * nextT * nextT;
@@ -80,7 +222,7 @@ void updateWithDetect(float t){
                 quatRotate(tmpBall.quatY, tmpBall.wx, tmpBall.wy, tmpBall.wz, nextT);
                 currentT += nextT;
                 balls[i] = tmpBall;
-                nextT *= 2.0f;
+                nextT *= kSuccess;
                 if(nextT > t - currentT) nextT = t - currentT;
                 if(currentT < t){
                     rvx = tmpBall.vx - tmpBall.wy * tmpBall.r;
@@ -281,12 +423,12 @@ void collision(float t){
                 crossC = 1;
         }
         if(((crossR || crossE) && nextT > 1e-5f) || ((crossD || crossC) && nextT > 1e-4f)){
-            nextT *= 0.5f;
+            nextT *= kFail;
             for(int i=0;i<tmpBalls.size();i++)
                 balls[i] = tmpBalls[i];
         }else{
             currentT += nextT;
-            nextT *= 2.0f;
+            nextT *= kSuccess;
             if(nextT > t - currentT)
                 nextT = t - currentT;
             for(int i=0;i<balls.size()-1;i++){
@@ -329,21 +471,21 @@ void collision(float t){
                                 rvx2 = (tmpBalls[0].vy - tmpBalls[1].vy) * DeltaX - (tmpBalls[0].vx - tmpBalls[1].vx) * DeltaY - (tmpBalls[0].wz + tmpBalls[1].wz) * balls[0].r;
                                 rvy2 = (-(tmpBalls[0].wx + tmpBalls[1].wx) * DeltaY + (tmpBalls[0].wy + tmpBalls[1].wy) * DeltaX) * balls[0].r;
                                 frictionAngle2 = atan2f(rvy2, rvx2);
-                                if(state1 == 1 && (rvx * rvx2 < 0.0f || rvy * rvy2 < 0.0f || fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
+                                if(state1 == 1 && (rvx * rvx2 <= 0.0f || rvy * rvy2 <= 0.0f || fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
                                     reject = 1;
                                 }else if(state1 == 0 && (fabsf(rvx2) > epsilon || fabsf(rvy2) > epsilon)){
                                     reject = 1;
                                 }
 
                                 if(reject && nextK > 1e-2f){
-                                    nextK *= 0.5f;
+                                    nextK *= kFail;
                                     tmpBalls[0] = balls[i];
                                     tmpBalls[1] = balls[j];
                                 }else{
                                     balls[i] = tmpBalls[0];
                                     balls[j] = tmpBalls[1];
                                     currentK += nextK;
-                                    nextK *= 2.0f;
+                                    nextK *= kSuccess;
                                     if(nextK > 1.0f - currentK)
                                         nextK = 1.0f - currentK;
                                     if(currentK < 1.0f){
@@ -391,7 +533,6 @@ void collision(float t){
                         tmpBalls[0] = balls[i];
 
                         Is = -tmpBalls[0].m * (1.0f + collisionK) * tmp / cosf(edgeTheta);
-                        Ib = Is * sinf(edgeTheta);
 
                         DeltaX = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (1.0f + sinf(edgeTheta));
                         DeltaY = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) * sinf(edgeTheta) + (tmpBalls[0].wx * dy - tmpBalls[0].wy * dx) * tmpBalls[0].r;
@@ -406,6 +547,8 @@ void collision(float t){
                             Ix = 0.0f;
                             Iy = 0.0f;
                         }
+                        Ib = Is * sinf(edgeTheta) - Iy;
+                        if(Ib < 0.0f) Ib = 0.0f;
                         DeltaX2 = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) + (dx * tmpBalls[0].wx + dy * tmpBalls[0].wy) * tmpBalls[0].r;
                         DeltaY2 = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) + (-tmpBalls[0].wx * dy + tmpBalls[0].wy * dx) * tmpBalls[0].r;
                         if(fabsf(DeltaX2) > epsilon || fabsf(DeltaY2) > epsilon){
@@ -430,7 +573,7 @@ void collision(float t){
                             DeltaX3 = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (1.0f + sinf(edgeTheta));
                             DeltaY3 = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) * sinf(edgeTheta) + (tmpBalls[0].wx * dy - tmpBalls[0].wy * dx) * tmpBalls[0].r;
                             frictionAngle3 = atan2f(DeltaY3, DeltaX3);
-                            if(state1 == 1 && (DeltaX3 * DeltaX < 0.0f || DeltaY3 * DeltaY < 0.0f || fabsf(frictionAngle3 - frictionAngle) > PI / 18.0f)){
+                            if(state1 == 1 && (DeltaX3 * DeltaX <= 0.0f || DeltaY3 * DeltaY <= 0.0f || fabsf(frictionAngle3 - frictionAngle) > PI / 18.0f)){
                                 reject = 1;
                             }else if(state1 == 0 && (fabsf(DeltaX3) > epsilon || fabsf(DeltaY3) > epsilon)){
                                 reject = 1;
@@ -439,7 +582,7 @@ void collision(float t){
                             DeltaX4 = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) + (dx * tmpBalls[0].wx + dy * tmpBalls[0].wy) * tmpBalls[0].r;
                             DeltaY4 = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) + (-tmpBalls[0].wx * dy + tmpBalls[0].wy * dx) * tmpBalls[0].r;
                             frictionAngle4 = atan2f(DeltaY4, DeltaX4);
-                            if(state2 == 1 && (DeltaX4 * DeltaX2 < 0.0f || DeltaY4 * DeltaY2 < 0.0f || fabsf(frictionAngle4 - frictionAngle2) > PI / 18.0f)){
+                            if(state2 == 1 && (DeltaX4 * DeltaX2 <= 0.0f || DeltaY4 * DeltaY2 <= 0.0f || fabsf(frictionAngle4 - frictionAngle2) > PI / 18.0f)){
                                 reject = 1;
                             }else if(state2 == 0 && (fabsf(DeltaX4) > epsilon || fabsf(DeltaY4) > epsilon)){
                                 reject = 1;
@@ -447,18 +590,15 @@ void collision(float t){
 
 
                             if(reject && nextK > 1e-2f){
-                                nextK *= 0.5f;
+                                nextK *= kFail;
                                 tmpBalls[0] = balls[i];
                             }else{
                                 balls[i] = tmpBalls[0];
                                 currentK += nextK;
-                                nextK *= 2.0f;
+                                nextK *= kSuccess;
                                 if(nextK > 1.0f - currentK)
                                     nextK = 1.0f - currentK;
                                 if(currentK < 1.0f){
-                                    Is = -tmpBalls[0].m * (1.0f + collisionK) * tmp / cosf(edgeTheta);
-                                    Ib = Is * sinf(edgeTheta);
-
                                     DeltaX = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (1.0f + sinf(edgeTheta));
                                     DeltaY = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) * sinf(edgeTheta) + (tmpBalls[0].wx * dy - tmpBalls[0].wy * dx) * tmpBalls[0].r;
                                     if(fabsf(DeltaX) > epsilon || fabsf(DeltaY) > epsilon){
