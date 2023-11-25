@@ -92,7 +92,7 @@ void hitBall(float yaw, float pitch, float vx, float vy, float vz){
         if(((tmpVx - tmpBall.vx) * rx + (tmpVy - tmpBall.vy) * ry + (tmpVz - tmpBall.vz) * rz) / (v * vx0 * rx + v * vy0 * ry + v * vz0 * rz) < -0.6f){
             reject = 1;
         }
-        if(reject && nextK > 1e-2f){
+        if(reject && nextK > 1e-3f){
             nextK *= kFail;
             tmpBall = balls[0];
             tmpVx = vx;
@@ -515,7 +515,8 @@ void collision(float t){
                 powf(balls[i].x + holeX, 2) + powf(balls[i].y - holeY, 2) < powf(0.5f * holeR, 2) ||
                 powf(balls[i].x + holeX, 2) + powf(balls[i].y + holeY, 2) < powf(0.5f * holeR, 2) ||
                 powf(balls[i].x, 2) + powf(balls[i].y - edgeY - 0.5f * holeR, 2) < powf(0.5f * holeR, 2) ||
-                powf(balls[i].x, 2) + powf(balls[i].y + edgeY + 0.5f * holeR, 2) < powf(0.5f * holeR, 2)){
+                powf(balls[i].x, 2) + powf(balls[i].y + edgeY + 0.5f * holeR, 2) < powf(0.5f * holeR, 2) ||
+                balls[i].x > edgeX || balls[i].x < -edgeX || balls[i].y > edgeY || balls[i].y < -edgeY){
                     balls[i].x = edgeX + 0.3f;
                     balls[i].y = 3.0f * balls[0].r * (i - 7);
                     balls[i].vx = balls[i].vy = balls[i].vz = 0.0f;

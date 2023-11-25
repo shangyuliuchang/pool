@@ -2,21 +2,22 @@
 #include"../inc/stb_image.h"
 #include"stdio.h"
 #include"stdlib.h"
-#include<GL/glut.h>
 #include<vector>
 #include<math.h>
 #include"time.h"
+#include<GL/glut.h>
 using namespace std;
 #include"../inc/ball.hpp"
 #include"../inc/main.hpp"
 #include"../inc/calc.hpp"
-int win, allowHit = 3, mouseState;
+int allowHit = 3, mouseState, keyState;
 float viewYaw = 0.0f, viewPitch = 0.0f, viewDistance = 1.5f, hitDistance = 0.0f, hitSpeed = 0.0f;
-float hitYaw = 0.0f, hitPitch = 0.0f;
+float hitYaw = 0.0f, hitPitch = 0.0f, cuePitch = PI / 36.0f;
 float viewX = 0.0f, viewY = 0.0f, viewZ = 0.0f;
 float rotateAmount = 0.0;
 float calcTime = 0.02f;
 unsigned int texture[16];
+unsigned int planePositionBO, planeColorBO, planeNormBO, planeEBO, planeVAO;
 vector<float> planeCoord, planeNorm, planeTex, ballX, ballY, ballZ, ballNX, ballNY, ballNZ, ballCoord, ballNorm, ballTex, cueCoord, cueNorm, cueTex;
 vector<unsigned int> planeCoordIndex, planeNormIndex, planeTexIndex, ballCoordIndex, ballNormIndex, ballTexIndex, cueNormIndex, cueCoordIndex, cueTexIndex;
 GLfloat color[4];
@@ -256,8 +257,8 @@ void display(){
     if(allowHit == 3){
         glLoadIdentity();
         glTranslatef(balls[0].x + (balls[0].r) * cosf(hitPitch) * cosf(viewYaw + hitYaw), balls[0].r * sinf(hitPitch), -(balls[0].y + (balls[0].r) * cosf(hitPitch) * sinf(viewYaw + hitYaw)));
-        glRotatef(viewYaw / PI * 180, 0.0f, 1.0f, 0.0f);
-        glRotatef(95.0f, 0.0f, 0.0f, 1.0f);
+        glRotatef((viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)) / PI * 180, 0.0f, 1.0f, 0.0f);
+        glRotatef(90.0f + cuePitch * 180.0f / PI, 0.0f, 0.0f, 1.0f);
         glTranslatef(0.0f, hitDistance, 0.0f);
         glColor4f(0.2f, 0.2f, 0.2f, 0.0f);
         glBegin(GL_TRIANGLES);
@@ -336,28 +337,39 @@ void init(){
     }
 }
 void keyBoard(unsigned char key, int x, int y){
+    keyState = key;
     if(key == 'f'){
         init();
     }else if(key == 'q'){
         exit(0);
     }else if(key == '0'){
         hitYaw = hitPitch = 0.0f;
+        cuePitch = 0.0f;
     }
+}
+void keyUp(unsigned char key, int x, int y){
+    keyState = 0;
 }
 void passiveMotion(int x, int y){
     if(allowHit != 2){
-        viewYaw -= (x - WINDOW_WIDTH / 2) * 1e-3f;
-        viewPitch += (y - WINDOW_HEIGHT / 2) * 1e-3f;
-        if(viewYaw > 2.0f * PI)
-            viewYaw -= 2.0f * PI;
-        else if(viewYaw < -2.0f * PI)
-            viewYaw += 2.0f * PI;
-        if(viewPitch < 0.0f)
-            viewPitch = 0.0f;
-        else if(viewPitch > 0.5f * PI)
-            viewPitch = 0.5f * PI;
-        hitDistance = 0.0f;
-        hitSpeed = 0.0f;
+        if(keyState == ' '){
+            cuePitch += (WINDOW_HEIGHT / 2 - y) * 1e-2f;
+            if(cuePitch > PI * 0.5f) cuePitch = PI * 0.5f;
+            else if(cuePitch < -PI * 0.5f) cuePitch = -PI * 0.5f;
+        }else{
+            viewYaw -= (x - WINDOW_WIDTH / 2) * 1e-3f;
+            viewPitch += (y - WINDOW_HEIGHT / 2) * 1e-3f;
+            if(viewYaw > 2.0f * PI)
+                viewYaw -= 2.0f * PI;
+            else if(viewYaw < -2.0f * PI)
+                viewYaw += 2.0f * PI;
+            if(viewPitch < 0.0f)
+                viewPitch = 0.0f;
+            else if(viewPitch > 0.5f * PI)
+                viewPitch = 0.5f * PI;
+            hitDistance = 0.0f;
+            hitSpeed = 0.0f;
+        }
     }else{
         balls[0].x += (float)(x - WINDOW_WIDTH / 2) / WINDOW_WIDTH * edgeX * 2.0f;
         balls[0].y += -(float)(y - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT * edgeY * 2.0f;
@@ -371,11 +383,11 @@ void passiveMotion(int x, int y){
 void motion(int x, int y){
     if(mouseState == 1){
         if(allowHit == 3){
-            hitSpeed = hitSpeed * 0.8f + (WINDOW_HEIGHT / 2 - y) * 5e-3f / calcTime * 0.2f;
+            hitSpeed = hitSpeed * 0.8f + (WINDOW_HEIGHT / 2 - y) * 2e-3f / calcTime * 0.2f;
             hitDistance += hitSpeed * calcTime;
             if(hitDistance > 0.0f){
                 if(hitSpeed > 10.0f) hitSpeed = 10.0f;
-                hitBall(viewYaw + hitYaw, hitPitch, -hitSpeed * cosf(5 / 180 * PI) * cosf(viewYaw), -hitSpeed * cosf(5 / 180 * PI) * sinf(viewYaw), -hitSpeed * sinf(5 / 180 * PI));
+                hitBall(viewYaw + hitYaw, hitPitch, -hitSpeed * cosf(cuePitch) * cosf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * cosf(cuePitch) * sinf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * sinf(cuePitch));
                 allowHit = 0;
             }
         }
@@ -390,9 +402,11 @@ void motion(int x, int y){
             hitPitch += (WINDOW_HEIGHT / 2 - y) * 1e-2f;
             if(hitPitch > PI / 4.0f) hitPitch = PI / 4.0f;
             else if(hitPitch < -PI / 4.0f) hitPitch = -PI / 4.0f;
-            hitYaw += (x - WINDOW_WIDTH / 2) * 1e-2f;
-            if(hitYaw > PI / 4.0f) hitYaw = PI / 4.0f;
-            else if(hitYaw < -PI / 4.0f) hitYaw = -PI / 4.0f;
+            if(keyState == ' '){
+                hitYaw += (x - WINDOW_WIDTH / 2) * 1e-2f;
+                if(hitYaw > PI / 4.0f) hitYaw = PI / 4.0f;
+                else if(hitYaw < -PI / 4.0f) hitYaw = -PI / 4.0f;
+            }
         }
     }
     glutWarpPointer(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
@@ -481,9 +495,10 @@ int main(int argc, char *argv[]){
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    win = glutCreateWindow("a");
+    glutCreateWindow("pool");
     glutDisplayFunc(display);
     glutKeyboardFunc(keyBoard);
+    glutKeyboardUpFunc(keyUp);
     glutMouseFunc(mouse);
     glutPassiveMotionFunc(passiveMotion);
     glutMotionFunc(motion);

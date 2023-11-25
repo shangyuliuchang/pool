@@ -19,7 +19,7 @@
 #define epsilon (1e-3f)
 #define kFail (0.25f)
 #define kSuccess (1.5f)
-#define cueK (0.01f)
+#define cueK (0.02f)
 extern int mode;
 extern int allowHit;
 void quatRotate(float p[], float wx, float wy, float wz, float t);
