@@ -5,6 +5,7 @@
 #include<vector>
 #include<math.h>
 #include"time.h"
+#include<GL/glew.h>
 #include<GL/glut.h>
 using namespace std;
 #include"../inc/ball.hpp"
@@ -17,8 +18,13 @@ float viewX = 0.0f, viewY = 0.0f, viewZ = 0.0f;
 float rotateAmount = 0.0;
 float calcTime = 0.02f;
 unsigned int texture[16];
-unsigned int planePositionBO, planeColorBO, planeNormBO, planeEBO, planeVAO;
-vector<float> planeCoord, planeNorm, planeTex, ballX, ballY, ballZ, ballNX, ballNY, ballNZ, ballCoord, ballNorm, ballTex, cueCoord, cueNorm, cueTex;
+unsigned int planeCoordBO, planeTexBO, planeNormBO, planeVAO;
+unsigned int cueCoordBO, cueTexBO, cueNormBO, cueVAO;
+unsigned int ballCoordBO, ballTexBO, ballNormBO, ballVAO;
+vector<float> planeOrderedCoord, planeOrderedNorm, planeOrderedTex;
+vector<float> ballOrderedCoord, ballOrderedNorm, ballOrderedTex;
+vector<float> cueOrderedCoord, cueOrderedNorm, cueOrderedTex;
+vector<float> planeCoord, planeNorm, planeTex, ballCoord, ballNorm, ballTex, cueCoord, cueNorm, cueTex;
 vector<unsigned int> planeCoordIndex, planeNormIndex, planeTexIndex, ballCoordIndex, ballNormIndex, ballTexIndex, cueNormIndex, cueCoordIndex, cueTexIndex;
 GLfloat color[4];
 struct timespec tStart;
@@ -98,27 +104,20 @@ void getRotation(float quat0[], float quat1[], float *angleX, float vecX[], floa
     }
 }
 void drawTriangle(vector<unsigned int> &ic, vector<unsigned int> &in, vector<unsigned int> &it, vector<float> &c, vector<float> &n, vector<float> &t){
-    for(int i=0;i<ic.size()/3;i++){
-        glTexCoord2f(t[it[i * 3 + 0] * 3 - 3], t[it[i * 3 + 0] * 3 - 2]);
-        glNormal3f(n[in[i * 3 + 0] * 3 - 3], n[in[i * 3 + 0] * 3 - 2], n[in[i * 3 + 0] * 3 - 1]);
-        glVertex3f(c[ic[i * 3 + 0] * 3 - 3], c[ic[i * 3 + 0] * 3 - 2], c[ic[i * 3 + 0] * 3 - 1]);
-
-        glTexCoord2f(t[it[i * 3 + 1] * 3 - 3], t[it[i * 3 + 1] * 3 - 2]);
-        glNormal3f(n[in[i * 3 + 1] * 3 - 3], n[in[i * 3 + 1] * 3 - 2], n[in[i * 3 + 1] * 3 - 1]);
-        glVertex3f(c[ic[i * 3 + 1] * 3 - 3], c[ic[i * 3 + 1] * 3 - 2], c[ic[i * 3 + 1] * 3 - 1]);
-
-        glTexCoord2f(t[it[i * 3 + 2] * 3 - 3], t[it[i * 3 + 2] * 3 - 2]);
-        glNormal3f(n[in[i * 3 + 2] * 3 - 3], n[in[i * 3 + 2] * 3 - 2], n[in[i * 3 + 2] * 3 - 1]);
-        glVertex3f(c[ic[i * 3 + 2] * 3 - 3], c[ic[i * 3 + 2] * 3 - 2], c[ic[i * 3 + 2] * 3 - 1]);
+    for(int i=0;i<ic.size();i++){
+        glTexCoord2f(t[it[i] * 3 - 3], t[it[i] * 3 - 2]);
+        glNormal3f(n[in[i] * 3 - 3], n[in[i] * 3 - 2], n[in[i] * 3 - 1]);
+        glVertex3f(c[ic[i] * 3 - 3], c[ic[i] * 3 - 2], c[ic[i] * 3 - 1]);
     }
 }
 void drawPlane(){
     glLoadIdentity();
     glTranslatef(0.0f, -balls[0].r, 0.0f);
     glColor4f(0.2f, 0.4f, 0.2f, 1.0f);
-    glBegin(GL_TRIANGLES);
-    drawTriangle(planeCoordIndex, planeNormIndex, planeTexIndex, planeCoord, planeNorm, planeTex);
-    glEnd();
+    
+    glBindVertexArray(planeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, planeCoordIndex.size());
+    glBindVertexArray(0);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -234,9 +233,9 @@ void display(){
             glRotatef(angleY * 180.0f / PI, -1.0f, 0.0f, 0.0f);
 
         glBindTexture(GL_TEXTURE_2D, texture[i]);
-        glBegin(GL_TRIANGLES);
-        drawTriangle(ballCoordIndex, ballNormIndex, ballTexIndex, ballCoord, ballNorm, ballTex);
-        glEnd();
+        glBindVertexArray(ballVAO);
+        glDrawArrays(GL_TRIANGLES, 0, ballCoordIndex.size());
+        glBindVertexArray(0);
     }
     glDisable(GL_TEXTURE_2D);
 
@@ -261,9 +260,9 @@ void display(){
         glRotatef(90.0f + cuePitch * 180.0f / PI, 0.0f, 0.0f, 1.0f);
         glTranslatef(0.0f, hitDistance, 0.0f);
         glColor4f(0.2f, 0.2f, 0.2f, 0.0f);
-        glBegin(GL_TRIANGLES);
-        drawTriangle(cueCoordIndex, cueNormIndex, cueTexIndex, cueCoord, cueNorm, cueTex);
-        glEnd();
+        glBindVertexArray(cueVAO);
+        glDrawArrays(GL_TRIANGLES, 0, cueCoordIndex.size());
+        glBindVertexArray(0);
     }
 
     glutSwapBuffers();
@@ -469,6 +468,44 @@ void readOBJ(const char dir[], vector<float> &c, vector<float> &n, vector<float>
     }
     fclose(fp);
 }
+void genVAO(vector<float> &c, vector<float> &n, vector<float> &t, vector<unsigned int> &ic, vector<unsigned int> &in, vector<unsigned int> &it, vector<float> &oc, vector<float> &on, vector<float> &ot, unsigned int *coordBO, unsigned int *normBO, unsigned int *texBO, unsigned int *vao){
+    oc = vector<float>(ic.size() * 3, 0);
+    on = vector<float>(ic.size() * 3, 0);
+    ot = vector<float>(ic.size() * 2, 0);
+    for(int i=0;i<ic.size();i++){
+        oc[i * 3 + 0] = c[ic[i] * 3 - 3];
+        oc[i * 3 + 1] = c[ic[i] * 3 - 2];
+        oc[i * 3 + 2] = c[ic[i] * 3 - 1];
+        on[i * 3 + 0] = n[in[i] * 3 - 3];
+        on[i * 3 + 1] = n[in[i] * 3 - 2];
+        on[i * 3 + 2] = n[in[i] * 3 - 1];
+        ot[i * 2 + 0] = t[it[i] * 3 - 3];
+        ot[i * 2 + 1] = t[it[i] * 3 - 2];
+    }
+    glGenVertexArrays(1, vao);
+    glGenBuffers(1, coordBO);
+    glGenBuffers(1, normBO);
+    glGenBuffers(1, texBO);
+    glBindBuffer(GL_ARRAY_BUFFER, *coordBO);
+    glBufferData(GL_ARRAY_BUFFER, oc.size() * sizeof(float), oc.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, *normBO);
+    glBufferData(GL_ARRAY_BUFFER, on.size() * sizeof(float), on.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, *texBO);
+    glBufferData(GL_ARRAY_BUFFER, ot.size() * sizeof(float), ot.data(), GL_STATIC_DRAW);
+
+    glBindVertexArray(*vao);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, *coordBO);
+    glVertexPointer(3, GL_FLOAT, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, *normBO);
+    glNormalPointer(GL_FLOAT, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, *texBO);
+    glTexCoordPointer(2, GL_FLOAT, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
 void loadTex(unsigned int *tex, const char dir[]){
     int width, height, nChannel;
     unsigned char *data;
@@ -496,6 +533,7 @@ int main(int argc, char *argv[]){
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutCreateWindow("pool");
+    glewInit();
     glutDisplayFunc(display);
     glutKeyboardFunc(keyBoard);
     glutKeyboardUpFunc(keyUp);
@@ -514,6 +552,9 @@ int main(int argc, char *argv[]){
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    genVAO(planeCoord, planeNorm, planeTex, planeCoordIndex, planeNormIndex, planeTexIndex, planeOrderedCoord, planeOrderedNorm, planeOrderedTex, &planeCoordBO, &planeNormBO, &planeTexBO, &planeVAO);
+    genVAO(ballCoord, ballNorm, ballTex, ballCoordIndex, ballNormIndex, ballTexIndex, ballOrderedCoord, ballOrderedNorm, ballOrderedTex, &ballCoordBO, &ballNormBO, &ballTexBO, &ballVAO);
+    genVAO(cueCoord, cueNorm, cueTex, cueCoordIndex, cueNormIndex, cueTexIndex, cueOrderedCoord, cueOrderedNorm, cueOrderedTex, &cueCoordBO, &cueNormBO, &cueTexBO, &cueVAO);
     glGenTextures(16, texture);
     for(int i=0;i<=15;i++){
         sprintf(dir, "../mat/ball%d.jpg", i);
