@@ -5,12 +5,13 @@ using namespace std;
 #include"../inc/ball.hpp"
 #include"../inc/main.hpp"
 void hitBall(float yaw, float pitch, float vx, float vy, float vz){
-    float rx, ry, rz, I, vx0, vy0, vz0, v, Ib, rv1, rv2, rvx, rvy, vn, vtx, vty, vtz, wvx, wvy, wvz;
+    float rx, ry, rz, I, vx0, vy0, vz0, v, Ib, rv1, rv2, rv3, rv4, rvx, rvy, vn, vtx, vty, vtz, wvx, wvy, wvz;
     float rvx2, rvy2, vtx2, vty2, vtz2, wvx2, wvy2, wvz2;
     float tmpVx, tmpVy, tmpVz;
     float Itx, Ity, Itz, Ibx, Iby, It;
     float currentK, nextK;
     int state1, state2, state3, state4, reject;
+    float frictionAngle, frictionAngle2;
     ball tmpBall;
     rx = balls[0].r * cosf(pitch) * cosf(yaw);
     ry = balls[0].r * cosf(pitch) * sinf(yaw);
@@ -52,6 +53,7 @@ void hitBall(float yaw, float pitch, float vx, float vy, float vz){
     if(fabsf(rvx) > epsilon || fabsf(rvy) > epsilon){
         state2 = 1;
         rv1 = sqrtf(rvx * rvx + rvy * rvy);
+        frictionAngle = atan2f(rvy, rvx);
         Ibx = -Ib * mu1 * rvx / rv1;
         Iby = -Ib * mu1 * rvy / rv1;
     }else{
@@ -72,6 +74,7 @@ void hitBall(float yaw, float pitch, float vx, float vy, float vz){
         reject = 0;
         rvx2 = tmpBall.vx - tmpBall.wy * balls[0].r;
         rvy2 = tmpBall.vy + tmpBall.wx * balls[0].r;
+        frictionAngle2 = atan2f(rvy2, rvx2);
         vn = ((tmpVx - tmpBall.vx) * rx + (tmpVy - tmpBall.vy) * ry + (tmpVz - tmpBall.vz) * rz) / balls[0].r;
         vtx2 = (tmpVx - tmpBall.vx) - vn * rx / balls[0].r;
         vty2 = (tmpVy - tmpBall.vy) - vn * ry / balls[0].r;
@@ -79,12 +82,13 @@ void hitBall(float yaw, float pitch, float vx, float vy, float vz){
         wvx2 = tmpBall.wy * rz - tmpBall.wz * ry;
         wvy2 = tmpBall.wz * rx - tmpBall.wx * rz;
         wvz2 = tmpBall.wx * ry - tmpBall.wy * rx;
-        if(state1 == 1 && ((vtx - wvx) * (vtx2 - wvx2) <= 0.0f || (vty - wvy) * (vty2 - wvy2) <= 0.0f || (vtz - wvz) * (vtz2 - wvz2) <= 0.0f)){
+        rv4 = sqrtf(powf(vtx2 - wvx2, 2) + powf(vty2 - wvy2, 2) + powf(vtz2 - wvz2, 2));
+        if(state1 == 1 && ((vtx - wvx) * (vtx2 - wvx2) + (vty - wvy) * (vty2 - wvy2) + (vtz - wvz) * (vtz2 - wvz2) <= 0.99f * rv2 * rv4)){
             reject = 1;
         }else if(state1 == 0 && (fabsf(vtx2 - wvx2) > epsilon || fabsf(vty2 - wvy2) > epsilon || fabsf(vtz2 - wvz2) > epsilon)){
             reject = 1;
         }
-        if(state2 == 1 && (rvx * rvx2 <= 0.0f || rvy * rvy2 <= 0.0f)){
+        if(state2 == 1 && (fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
             reject = 1;
         }else if(state2 == 0 && (fabsf(rvx2) > epsilon || fabsf(rvy2) > epsilon)){
             reject = 1;
@@ -135,6 +139,7 @@ void hitBall(float yaw, float pitch, float vx, float vy, float vz){
                 if(fabsf(rvx) > epsilon || fabsf(rvy) > epsilon){
                     state2 = 1;
                     rv1 = sqrtf(rvx * rvx + rvy * rvy);
+                    frictionAngle = atan2f(rvy, rvx);
                     Ibx = -Ib * mu1 * rvx / rv1;
                     Iby = -Ib * mu1 * rvy / rv1;
                 }else{
@@ -200,9 +205,9 @@ void updateWithDetect(float t){
             rvx2 = tmpBall.vx - tmpBall.wy * tmpBall.r;
             rvy2 = tmpBall.vy + tmpBall.wx * tmpBall.r;
             frictionAngle2 = atan2f(rvy2, rvx2);
-            if(state1 == 3 && (rvx2 * rvx <= 0.0f || rvy2 * rvy <= 0.0f || fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
+            if(state1 == 3 && (fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
                 reject = 1;
-            }else if(state1 == 2 && (tmpBall.vx * vx <= 0.0f || tmpBall.vy * vy <= 0.0f || tmpBall.wx * wx <= 0.0f || tmpBall.wy * wy <= 0.0f)){
+            }else if(state1 == 2 && (tmpBall.vx * vx <= 0.0f || tmpBall.vy * vy <= 0.0f)){
                 reject = 1;
             }
 
@@ -349,7 +354,7 @@ void collision(float t){
     vector<vector<int>> tmpDRelation, dRelation, rRelation, tmpRRelation;
     vector<int> tmpERelation(balls.size(), 0), tmpCRelation(balls.size(), 0), eRelation(balls.size(), 0), cRelation(balls.size(), 0);
     float currentT = 0.0f, nextT = t, tmp, DeltaX, DeltaY, dx, dy, deltaVx, deltaVy, rvx, rvy, rv, rvx2, rvy2, rv2, DeltaX2, DeltaY2, Delta, DeltaX3, DeltaY3, DeltaX4, DeltaY4;
-    float Ib, Is, Ix, Iy, Ix2, Iy2, currentK, nextK, Ix3, Iy3, ratio, frictionAngle, frictionAngle2, frictionAngle3, frictionAngle4;
+    float Ib, Is, Ix, Iy, Ix2, Iy2, currentK, nextK, Ix3, Iy3, ratio, frictionAngle, frictionAngle2, frictionAngle3, frictionAngle4, rejectRatio;
     int crossD, crossR, crossE, crossC, state1, state2, state3, state4, reject;
     for(int i=0;i<balls.size()-1;i++){
         dRelation.push_back(vector<int>(balls.size(), 0));
@@ -468,12 +473,11 @@ void collision(float t){
                                 tmpBalls[1].wy += Iy * balls[0].r / balls[0].I * -DeltaX;
 
                                 reject = 0;
+                                rejectRatio = 10.0f;
                                 rvx2 = (tmpBalls[0].vy - tmpBalls[1].vy) * DeltaX - (tmpBalls[0].vx - tmpBalls[1].vx) * DeltaY - (tmpBalls[0].wz + tmpBalls[1].wz) * balls[0].r;
                                 rvy2 = (-(tmpBalls[0].wx + tmpBalls[1].wx) * DeltaY + (tmpBalls[0].wy + tmpBalls[1].wy) * DeltaX) * balls[0].r;
                                 frictionAngle2 = atan2f(rvy2, rvx2);
-                                if(state1 == 1 && (rvx * rvx2 <= 0.0f || rvy * rvy2 <= 0.0f || fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
-                                    reject = 1;
-                                }else if(state1 == 0 && (fabsf(rvx2) > epsilon || fabsf(rvy2) > epsilon)){
+                                if(state1 == 1 && (fabsf(frictionAngle2 - frictionAngle) > PI / 18.0f)){
                                     reject = 1;
                                 }
 
@@ -535,7 +539,7 @@ void collision(float t){
 
                         Is = -tmpBalls[0].m * (1.0f + collisionK) * tmp / cosf(edgeTheta);
 
-                        DeltaX = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (1.0f + sinf(edgeTheta));
+                        DeltaX = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (sinf(edgeTheta));
                         DeltaY = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) * sinf(edgeTheta) + (tmpBalls[0].wx * dy - tmpBalls[0].wy * dx) * tmpBalls[0].r;
                         if(fabsf(DeltaX) > epsilon || fabsf(DeltaY) > epsilon){
                             Delta = sqrtf(DeltaX * DeltaX + DeltaY * DeltaY);
@@ -571,10 +575,10 @@ void collision(float t){
                             tmpBalls[0].wz += ((Ix * cosf(edgeTheta)) * tmpBalls[0].r / tmpBalls[0].I) * nextK;
 
                             reject = 0;
-                            DeltaX3 = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (1.0f + sinf(edgeTheta));
+                            DeltaX3 = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (sinf(edgeTheta));
                             DeltaY3 = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) * sinf(edgeTheta) + (tmpBalls[0].wx * dy - tmpBalls[0].wy * dx) * tmpBalls[0].r;
                             frictionAngle3 = atan2f(DeltaY3, DeltaX3);
-                            if(state1 == 1 && (DeltaX3 * DeltaX <= 0.0f || DeltaY3 * DeltaY <= 0.0f || fabsf(frictionAngle3 - frictionAngle) > PI / 18.0f)){
+                            if(state1 == 1 && (fabsf(frictionAngle3 - frictionAngle) > PI / 18.0f)){
                                 reject = 1;
                             }else if(state1 == 0 && (fabsf(DeltaX3) > epsilon || fabsf(DeltaY3) > epsilon)){
                                 reject = 1;
@@ -583,7 +587,7 @@ void collision(float t){
                             DeltaX4 = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) + (dx * tmpBalls[0].wx + dy * tmpBalls[0].wy) * tmpBalls[0].r;
                             DeltaY4 = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) + (-tmpBalls[0].wx * dy + tmpBalls[0].wy * dx) * tmpBalls[0].r;
                             frictionAngle4 = atan2f(DeltaY4, DeltaX4);
-                            if(state2 == 1 && (DeltaX4 * DeltaX2 <= 0.0f || DeltaY4 * DeltaY2 <= 0.0f || fabsf(frictionAngle4 - frictionAngle2) > PI / 18.0f)){
+                            if(state2 == 1 && (fabsf(frictionAngle4 - frictionAngle2) > PI / 18.0f)){
                                 reject = 1;
                             }else if(state2 == 0 && (fabsf(DeltaX4) > epsilon || fabsf(DeltaY4) > epsilon)){
                                 reject = 1;
@@ -600,7 +604,7 @@ void collision(float t){
                                 if(nextK > 1.0f - currentK)
                                     nextK = 1.0f - currentK;
                                 if(currentK < 1.0f){
-                                    DeltaX = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (1.0f + sinf(edgeTheta));
+                                    DeltaX = (dx * tmpBalls[0].vy - dy * tmpBalls[0].vx) - tmpBalls[0].wz * tmpBalls[0].r * cosf(edgeTheta) - (tmpBalls[0].wx * dx + tmpBalls[0].wy * dy) * tmpBalls[0].r * (sinf(edgeTheta));
                                     DeltaY = (-dx * tmpBalls[0].vx - dy * tmpBalls[0].vy) * sinf(edgeTheta) + (tmpBalls[0].wx * dy - tmpBalls[0].wy * dx) * tmpBalls[0].r;
                                     if(fabsf(DeltaX) > epsilon || fabsf(DeltaY) > epsilon){
                                         Delta = sqrtf(DeltaX * DeltaX + DeltaY * DeltaY);

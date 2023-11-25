@@ -103,13 +103,6 @@ void getRotation(float quat0[], float quat1[], float *angleX, float vecX[], floa
         vecY[2] /= norm0;
     }
 }
-void drawTriangle(vector<unsigned int> &ic, vector<unsigned int> &in, vector<unsigned int> &it, vector<float> &c, vector<float> &n, vector<float> &t){
-    for(int i=0;i<ic.size();i++){
-        glTexCoord2f(t[it[i] * 3 - 3], t[it[i] * 3 - 2]);
-        glNormal3f(n[in[i] * 3 - 3], n[in[i] * 3 - 2], n[in[i] * 3 - 1]);
-        glVertex3f(c[ic[i] * 3 - 3], c[ic[i] * 3 - 2], c[ic[i] * 3 - 1]);
-    }
-}
 void drawPlane(){
     glLoadIdentity();
     glTranslatef(0.0f, -balls[0].r, 0.0f);
