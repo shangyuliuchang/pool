@@ -198,9 +198,9 @@ void display(){
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, shadowTexture);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowWidth, shadowHeight);
+    glActiveTexture(GL_TEXTURE0);
     glColorMask(1, 1, 1, 1);
     glCullFace(GL_BACK);
-    glActiveTexture(GL_TEXTURE0);
 
     glClear(GL_DEPTH_BUFFER_BIT);
     if(allowHit == 2){
@@ -512,7 +512,7 @@ void genVAO(vector<float> &c, vector<float> &n, vector<float> &t, vector<unsigne
     glBufferData(GL_ARRAY_BUFFER, ot.size() * sizeof(float), ot.data(), GL_STATIC_DRAW);
 
     glBindVertexArray(*vao);
-    glClientActiveTexture(GL_TEXTURE0);
+    // glClientActiveTexture(GL_TEXTURE0);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
