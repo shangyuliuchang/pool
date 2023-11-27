@@ -15,12 +15,13 @@ int allowHit = 3, mouseState, keyState;
 float viewYaw = 0.0f, viewPitch = 0.0f, viewDistance = 1.5f, hitDistance = 0.0f, hitSpeed = 0.0f;
 float hitYaw = 0.0f, hitPitch = 0.0f, cuePitch = PI / 36.0f;
 float viewX = 0.0f, viewY = 0.0f, viewZ = 0.0f;
-float rotateAmount = 0.0;
+float lightPM[16], lightVM[16];
 float calcTime = 0.02f;
 unsigned int texture[16];
 unsigned int planeCoordBO, planeTexBO, planeNormBO, planeVAO;
 unsigned int cueCoordBO, cueTexBO, cueNormBO, cueVAO;
 unsigned int ballCoordBO, ballTexBO, ballNormBO, ballVAO;
+unsigned int shadowTexture;
 vector<float> planeOrderedCoord, planeOrderedNorm, planeOrderedTex;
 vector<float> ballOrderedCoord, ballOrderedNorm, ballOrderedTex;
 vector<float> cueOrderedCoord, cueOrderedNorm, cueOrderedTex;
@@ -103,120 +104,21 @@ void getRotation(float quat0[], float quat1[], float *angleX, float vecX[], floa
         vecY[2] /= norm0;
     }
 }
-void drawPlane(){
-    glLoadIdentity();
+void drawPlane(int light){
+    glPushMatrix();
     glTranslatef(0.0f, -balls[0].r, 0.0f);
     glColor4f(0.2f, 0.4f, 0.2f, 1.0f);
-    
     glBindVertexArray(planeVAO);
     glDrawArrays(GL_TRIANGLES, 0, planeCoordIndex.size());
     glBindVertexArray(0);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
-    glLoadIdentity();
-    glTranslatef(0.0f, -balls[0].r + 0.0003f, 0.0f);
-    glBegin(GL_POLYGON);
-    for(float i=0;i<2*PI;i+=0.1f)
-        glVertex3f(holeX + holeR * 0.5f * cosf(i), 0.0f, -(holeY + holeR * 0.5f * sinf(i)));
-    glEnd();
-    glBegin(GL_POLYGON);
-    for(float i=0;i<2*PI;i+=0.1f)
-        glVertex3f(-holeX + holeR * 0.5f * cosf(i), 0.0f, -(holeY + holeR * 0.5f * sinf(i)));
-    glEnd();
-    glBegin(GL_POLYGON);
-    for(float i=0;i<2*PI;i+=0.1f)
-        glVertex3f(holeX + holeR * 0.5f * cosf(i), 0.0f, -(-holeY + holeR * 0.5f * sinf(i)));
-    glEnd();
-    glBegin(GL_POLYGON);
-    for(float i=0;i<2*PI;i+=0.1f)
-        glVertex3f(-holeX + holeR * 0.5f * cosf(i), 0.0f, -(-holeY + holeR * 0.5f * sinf(i)));
-    glEnd();
-    glBegin(GL_POLYGON);
-    for(float i=0;i<2*PI;i+=0.1f)
-        glVertex3f(holeR * 0.5f * cosf(i), 0.0f, -(edgeY + holeR * 0.5f + holeR * 0.5f * sinf(i)));
-    glEnd();
-    glBegin(GL_POLYGON);
-    for(float i=0;i<2*PI;i+=0.1f)
-        glVertex3f(holeR * 0.5f * cosf(i), 0.0f, -(-edgeY - holeR * 0.5f + holeR * 0.5f * sinf(i)));
-    glEnd();
-
-
-    glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
-    glLoadIdentity();
-    glTranslatef(0.0f, -balls[0].r + 0.0001f, 0.0f);
-    glBegin(GL_POLYGON);
-    for(float i=PI;i>0.5f*PI;i-=0.1f)
-        glVertex3f(edgeX + holeR + holeR * cosf(i), 0.0f, -(edgeY - holeD2 + holeR * sinf(i)));
-    for(float i=1.5f*PI;i>PI;i-=0.1f)
-        glVertex3f(edgeX + holeR + holeR * cosf(i), 0.0f, -(-edgeY + holeD2 + holeR * sinf(i)));
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    for(float i=PI;i>0.5f*PI;i-=0.1f)
-        glVertex3f(-1.0f * (edgeX + holeR + holeR * cosf(i)), 0.0f, (edgeY - holeD2 + holeR * sinf(i)));
-    for(float i=1.5f*PI;i>PI;i-=0.1f)
-        glVertex3f(-1.0f * (edgeX + holeR + holeR * cosf(i)), 0.0f, (-edgeY + holeD2 + holeR * sinf(i)));
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    for(float i=PI;i<1.5f*PI;i+=0.1f)
-        glVertex3f(holeD3 + holeR * cosf(i), 0.0f, -(edgeY + holeR + holeR * sinf(i)));
-    for(float i=-0.5f*PI;i<0.0f;i+=0.1f)
-        glVertex3f(edgeX - holeD2 + holeR * cosf(i), 0.0f, -(edgeY + holeR + holeR * sinf(i)));
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    for(float i=PI;i<1.5f*PI;i+=0.1f)
-        glVertex3f(-1.0f * (holeD3 + holeR * cosf(i)), 0.0f, (edgeY + holeR + holeR * sinf(i)));
-    for(float i=-0.5f*PI;i<0.0f;i+=0.1f)
-        glVertex3f(-1.0f * (edgeX - holeD2 + holeR * cosf(i)), 0.0f, (edgeY + holeR + holeR * sinf(i)));
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    for(float i=PI;i<1.5f*PI;i+=0.1f)
-        glVertex3f(-edgeX + holeD2 + holeR * cosf(i), 0.0f, -(edgeY + holeR + holeR * sinf(i)));
-    for(float i=-0.5f*PI;i<0.0f;i+=0.1f)
-        glVertex3f(-holeD3 + holeR * cosf(i), 0.0f, -(edgeY + holeR + holeR * sinf(i)));
-    glEnd();
-
-    glBegin(GL_POLYGON);
-    for(float i=PI;i<1.5f*PI;i+=0.1f)
-        glVertex3f(-(-edgeX + holeD2 + holeR * cosf(i)), 0.0f, (edgeY + holeR + holeR * sinf(i)));
-    for(float i=-0.5f*PI;i<0.0f;i+=0.1f)
-        glVertex3f(-(-holeD3 + holeR * cosf(i)), 0.0f, (edgeY + holeR + holeR * sinf(i)));
-    glEnd();
-
-    glDisable(GL_BLEND);
+    glPopMatrix();
 }
-void display(){
+void drawBalls(int light){
     float vecX[3], vecY[3], angleX, angleY;
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    if(allowHit == 2){
-        gluPerspective(20.0f, 2.0f, 0.1f, 50.0f);
-        gluLookAt(0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f);
-        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    }else{
-        gluPerspective(20.0f, 4.0f / 3.0f, 0.1f, 50.0f);
-        viewX = viewX * 0.95f + balls[0].x * 0.05f;
-        viewY = viewY * 0.95f + balls[0].y * 0.05f;
-        viewZ = viewZ * 0.95f + balls[0].z * 0.05f;
-        gluLookAt(viewX + viewDistance * cosf(viewPitch) * cosf(viewYaw), viewZ + viewDistance * sinf(viewPitch), -viewY - viewDistance * cosf(viewPitch) * sinf(viewYaw), viewX, viewZ, -viewY, 0.0f, 1.0f, 0.0f);
-        glViewport(0, -WINDOW_HEIGHT / 2, WINDOW_WIDTH, 1.5f * WINDOW_HEIGHT);
-    }
-    glMatrixMode(GL_MODELVIEW);
-
-    drawPlane();
-
-    glEnable(GL_TEXTURE_2D);
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    if(light) glEnable(GL_TEXTURE_2D);
     for(int i=0;i<=15;i++){
-        glLoadIdentity();
+        glPushMatrix();
         glTranslatef(balls[i].x, balls[i].z, -balls[i].y);
         getRotation(balls[i].quatX, balls[i].quatY, &angleX, vecX, &angleY, vecY);
         glRotatef(angleX * 180.0f / PI, vecX[0], vecX[2], -vecX[1]);
@@ -225,38 +127,159 @@ void display(){
         else
             glRotatef(angleY * 180.0f / PI, -1.0f, 0.0f, 0.0f);
 
-        glBindTexture(GL_TEXTURE_2D, texture[i]);
+        if(light) glBindTexture(GL_TEXTURE_2D, texture[i]);
         glBindVertexArray(ballVAO);
         glDrawArrays(GL_TRIANGLES, 0, ballCoordIndex.size());
         glBindVertexArray(0);
+        glPopMatrix();
     }
-    glDisable(GL_TEXTURE_2D);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
-    for(int i=0;i<=15;i++){
-        glLoadIdentity();
-        glTranslatef(balls[i].x, balls[i].z, -balls[i].y);
-        glBegin(GL_POLYGON);
-        for(float i=0;i<2*PI;i+=0.1f){
-            glVertex3f(balls[0].r * cosf(i), 0.0002f - balls[0].r, balls[0].r * sinf(i));
-        }
-        glEnd();
-    }
-    glDisable(GL_BLEND);
-
+    if(light) glDisable(GL_TEXTURE_2D);
+}
+void drawCue(int light){
     if(allowHit == 3){
-        glLoadIdentity();
+        glPushMatrix();
         glTranslatef(balls[0].x + (balls[0].r) * cosf(hitPitch) * cosf(viewYaw + hitYaw), balls[0].r * sinf(hitPitch), -(balls[0].y + (balls[0].r) * cosf(hitPitch) * sinf(viewYaw + hitYaw)));
         glRotatef((viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)) / PI * 180, 0.0f, 1.0f, 0.0f);
         glRotatef(90.0f + cuePitch * 180.0f / PI, 0.0f, 0.0f, 1.0f);
         glTranslatef(0.0f, hitDistance, 0.0f);
-        glColor4f(0.2f, 0.2f, 0.2f, 0.0f);
+        glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
         glBindVertexArray(cueVAO);
         glDrawArrays(GL_TRIANGLES, 0, cueCoordIndex.size());
         glBindVertexArray(0);
+        glPopMatrix();
     }
+}
+void multiplyMatrix4(float* matrix1,float* matrix2,float* result)
+{
+    result[0] = matrix1[0]*matrix2[0] + matrix1[1]*matrix2[4] + matrix1[2]*matrix2[8] + matrix1[3]*matrix2[12];
+    result[1] = matrix1[0]*matrix2[1] + matrix1[1]*matrix2[5] + matrix1[2]*matrix2[9] + matrix1[3]*matrix2[13];
+    result[2] = matrix1[0]*matrix2[2] + matrix1[1]*matrix2[6] + matrix1[2]*matrix2[10] + matrix1[3]*matrix2[14];
+    result[3] = matrix1[0]*matrix2[3] + matrix1[1]*matrix2[7] + matrix1[2]*matrix2[11] + matrix1[3]*matrix2[15];
+
+    result[4] = matrix1[4]*matrix2[0] + matrix1[5]*matrix2[4] + matrix1[6]*matrix2[8] + matrix1[7]*matrix2[12];
+    result[5] = matrix1[4]*matrix2[1] + matrix1[5]*matrix2[5] + matrix1[6]*matrix2[9] + matrix1[7]*matrix2[13];
+    result[6] = matrix1[4]*matrix2[2] + matrix1[5]*matrix2[6] + matrix1[6]*matrix2[10] + matrix1[7]*matrix2[14];
+    result[7] = matrix1[4]*matrix2[3] + matrix1[5]*matrix2[7] + matrix1[6]*matrix2[11] + matrix1[7]*matrix2[15];
+
+    result[8] = matrix1[8]*matrix2[0] + matrix1[9]*matrix2[4] + matrix1[10]*matrix2[8] + matrix1[11]*matrix2[12];
+    result[9] = matrix1[8]*matrix2[1] + matrix1[9]*matrix2[5] + matrix1[10]*matrix2[9] + matrix1[11]*matrix2[13];
+    result[10] = matrix1[8]*matrix2[2] + matrix1[9]*matrix2[6] + matrix1[10]*matrix2[10] + matrix1[11]*matrix2[14];
+    result[11] = matrix1[8]*matrix2[3] + matrix1[9]*matrix2[7] + matrix1[10]*matrix2[11] + matrix1[11]*matrix2[15];
+
+    result[12] = matrix1[12]*matrix2[0] + matrix1[13]*matrix2[4] + matrix1[14]*matrix2[8] + matrix1[15]*matrix2[12];
+    result[13] = matrix1[12]*matrix2[1] + matrix1[13]*matrix2[5] + matrix1[14]*matrix2[9] + matrix1[15]*matrix2[13];
+    result[14] = matrix1[12]*matrix2[2] + matrix1[13]*matrix2[6] + matrix1[14]*matrix2[10] + matrix1[15]*matrix2[14];
+    result[15] = matrix1[12]*matrix2[3] + matrix1[13]*matrix2[7] + matrix1[14]*matrix2[11] + matrix1[15]*matrix2[15];
+}
+void display(){
+    GLfloat lightPos[] = {0.0f, 1.0f, 0.0f, 1.0f};
+    GLfloat lightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat lightDiffuseShadow[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    GLfloat lightAmbient[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    GLfloat lightSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float bias[]={0.5f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.5f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f};
+    float texM[16], tpM[16];
+    float column1[4], column2[4], column3[4], column4[4];
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glCullFace(GL_FRONT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(lightPM);
+    glViewport(0, 0, shadowWidth, shadowHeight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(lightVM);
+    glColorMask(0, 0, 0, 0);
+    drawPlane(0);
+    drawBalls(0);
+    drawCue(0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, shadowTexture);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowWidth, shadowHeight);
+    glColorMask(1, 1, 1, 1);
+    glCullFace(GL_BACK);
+    glActiveTexture(GL_TEXTURE0);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    if(allowHit == 2){
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(20.0f, 2.0f, 0.1f, 50.0f);
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        gluLookAt(0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f);
+    }else{
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(20.0f, 4.0f / 3.0f, 0.1f, 50.0f);
+        glViewport(0, -WINDOW_HEIGHT / 2, WINDOW_WIDTH, 1.5f * WINDOW_HEIGHT);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        viewX = viewX * 0.95f + balls[0].x * 0.05f;
+        viewY = viewY * 0.95f + balls[0].y * 0.05f;
+        viewZ = viewZ * 0.95f + balls[0].z * 0.05f;
+        gluLookAt(viewX + viewDistance * cosf(viewPitch) * cosf(viewYaw), viewZ + viewDistance * sinf(viewPitch), -viewY - viewDistance * cosf(viewPitch) * sinf(viewYaw), viewX, viewZ, -viewY, 0.0f, 1.0f, 0.0f);
+    }
+
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuseShadow);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+    drawPlane(1);
+    drawBalls(1);
+    drawCue(1);
+
+    multiplyMatrix4(lightPM, bias, tpM);
+    multiplyMatrix4(lightVM, tpM, texM);
+    column1[0] = texM[0];
+    column1[1] = texM[4];
+    column1[2] = texM[8];
+    column1[3] = texM[12];
+    column2[0] = texM[1];
+    column2[1] = texM[5];
+    column2[2] = texM[9];
+    column2[3] = texM[13];
+    column3[0] = texM[2];
+    column3[1] = texM[6];
+    column3[2] = texM[10];
+    column3[3] = texM[14];
+    column4[0] = texM[3];
+    column4[1] = texM[7];
+    column4[2] = texM[11];
+    column4[3] = texM[15];
+    glActiveTexture(GL_TEXTURE1);
+    glEnable(GL_TEXTURE_GEN_S);
+    glEnable(GL_TEXTURE_GEN_T);
+    glEnable(GL_TEXTURE_GEN_R);
+    glEnable(GL_TEXTURE_GEN_Q);
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+    glTexGenfv(GL_S, GL_EYE_PLANE, column1);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+    glTexGenfv(GL_T, GL_EYE_PLANE, column2);
+    glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+    glTexGenfv(GL_R, GL_EYE_PLANE, column3);
+    glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+    glTexGenfv(GL_Q, GL_EYE_PLANE, column4);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, shadowTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_ALPHA);
+    glActiveTexture(GL_TEXTURE0);
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GEQUAL, 0.5f);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+    drawPlane(1);
+    drawBalls(1);
+    drawCue(1);
+    glDisable(GL_ALPHA_TEST);
 
     glutSwapBuffers();
 }
@@ -337,6 +360,8 @@ void keyBoard(unsigned char key, int x, int y){
     }else if(key == '0'){
         hitYaw = hitPitch = 0.0f;
         cuePitch = 0.0f;
+    }else if(key == 'r'){
+        if(allowHit == 3) allowHit = 2;
     }
 }
 void keyUp(unsigned char key, int x, int y){
@@ -487,6 +512,7 @@ void genVAO(vector<float> &c, vector<float> &n, vector<float> &t, vector<unsigne
     glBufferData(GL_ARRAY_BUFFER, ot.size() * sizeof(float), ot.data(), GL_STATIC_DRAW);
 
     glBindVertexArray(*vao);
+    glClientActiveTexture(GL_TEXTURE0);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -511,11 +537,16 @@ void loadTex(unsigned int *tex, const char dir[]){
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     stbi_image_free(data);
 }
+void genShadowTex(unsigned int *shadowTex){
+    glGenTextures(1, shadowTex);
+    glBindTexture(GL_TEXTURE_2D, *shadowTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, shadowWidth, shadowHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+}
 int main(int argc, char *argv[]){
-    GLfloat lightPos[] = {0.0f, 1.0f, 0.0f, 1.0f};
-    GLfloat lightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    GLfloat lightAmbient[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    GLfloat lightSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
     char dir[100];
     init();
     readOBJ("../mat/plane.obj", planeCoord, planeNorm, planeTex, planeCoordIndex, planeNormIndex, planeTexIndex);
@@ -524,7 +555,7 @@ int main(int argc, char *argv[]){
     glutInit(&argc, argv);
     glutInitWindowPosition(0, 0);
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutCreateWindow("pool");
     glewInit();
     glutDisplayFunc(display);
@@ -536,18 +567,27 @@ int main(int argc, char *argv[]){
     glutSetCursor(GLUT_CURSOR_NONE);
 
     glEnable(GL_LIGHTING);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LEQUAL);
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_CULL_FACE);
 
     genVAO(planeCoord, planeNorm, planeTex, planeCoordIndex, planeNormIndex, planeTexIndex, planeOrderedCoord, planeOrderedNorm, planeOrderedTex, &planeCoordBO, &planeNormBO, &planeTexBO, &planeVAO);
     genVAO(ballCoord, ballNorm, ballTex, ballCoordIndex, ballNormIndex, ballTexIndex, ballOrderedCoord, ballOrderedNorm, ballOrderedTex, &ballCoordBO, &ballNormBO, &ballTexBO, &ballVAO);
     genVAO(cueCoord, cueNorm, cueTex, cueCoordIndex, cueNormIndex, cueTexIndex, cueOrderedCoord, cueOrderedNorm, cueOrderedTex, &cueCoordBO, &cueNormBO, &cueTexBO, &cueVAO);
+
+    genShadowTex(&shadowTexture);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(90.0f, 2.0f, 0.1f, 50.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f);
+    glGetFloatv(GL_PROJECTION_MATRIX, lightPM);
+    glGetFloatv(GL_MODELVIEW_MATRIX, lightVM);
+
     glGenTextures(16, texture);
     for(int i=0;i<=15;i++){
         sprintf(dir, "../mat/ball%d.jpg", i);
