@@ -107,7 +107,7 @@ void getRotation(float quat0[], float quat1[], float *angleX, float vecX[], floa
 void drawPlane(int light){
     glPushMatrix();
     glTranslatef(0.0f, -balls[0].r, 0.0f);
-    glColor4f(0.2f, 0.4f, 0.2f, 1.0f);
+    glColor4f(0.075f, 0.225f, 0.075f, 1.0f);
     glBindVertexArray(planeVAO);
     glDrawArrays(GL_TRIANGLES, 0, planeCoordIndex.size());
     glBindVertexArray(0);
@@ -172,7 +172,7 @@ void multiplyMatrix4(float* matrix1,float* matrix2,float* result)
     result[15] = matrix1[12]*matrix2[3] + matrix1[13]*matrix2[7] + matrix1[14]*matrix2[11] + matrix1[15]*matrix2[15];
 }
 void display(){
-    GLfloat lightPos[] = {0.0f, 1.0f, 0.0f, 1.0f};
+    GLfloat lightPos[] = {0.0f, 3.0f, 0.0f, 1.0f};
     GLfloat lightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
     GLfloat lightDiffuseShadow[] = {0.0f, 0.0f, 0.0f, 1.0f};
     GLfloat lightAmbient[] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -192,9 +192,11 @@ void display(){
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(lightVM);
     glColorMask(0, 0, 0, 0);
+    glDisable(GL_LIGHTING);
     drawPlane(0);
     drawBalls(0);
     drawCue(0);
+    glEnable(GL_LIGHTING);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, shadowTexture);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowWidth, shadowHeight);
@@ -581,10 +583,10 @@ int main(int argc, char *argv[]){
     genShadowTex(&shadowTexture);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90.0f, 2.0f, 0.1f, 50.0f);
+    gluPerspective(40.0f, 2.0f, 0.1f, 50.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f);
+    gluLookAt(0.0f, 3.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f);
     glGetFloatv(GL_PROJECTION_MATRIX, lightPM);
     glGetFloatv(GL_MODELVIEW_MATRIX, lightVM);
 
