@@ -109,9 +109,12 @@ void getRotation(float quat0[], float quat1[], float *angleX, float vecX[], floa
     }
 }
 void drawPlane(int light){
+    GLfloat specular[] = {0.0f, 0.0f, 0.0f, 1.0f};
     glPushMatrix();
     glTranslatef(0.0f, -balls[0].r, 0.0f);
     glColor4f(0.075f, 0.225f, 0.075f, 1.0f);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
     glBindVertexArray(planeVAO);
     glDrawArrays(GL_TRIANGLES, 0, planeCoordIndex.size());
     glBindVertexArray(0);
@@ -119,7 +122,10 @@ void drawPlane(int light){
 }
 void drawBalls(int light){
     float vecX[3], vecY[3], angleX, angleY;
+    GLfloat specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 128);
     if(light) glEnable(GL_TEXTURE_2D);
     for(int i=0;i<=15;i++){
         glPushMatrix();
@@ -140,6 +146,7 @@ void drawBalls(int light){
     if(light) glDisable(GL_TEXTURE_2D);
 }
 void drawCue(int light){
+    GLfloat specular[] = {0.0f, 0.0f, 0.0f, 1.0f};
     if(allowHit == 3){
         glPushMatrix();
         glTranslatef(balls[0].x + (balls[0].r) * cosf(hitPitch) * cosf(viewYaw + hitYaw), balls[0].r * sinf(hitPitch), -(balls[0].y + (balls[0].r) * cosf(hitPitch) * sinf(viewYaw + hitYaw)));
@@ -147,6 +154,8 @@ void drawCue(int light){
         glRotatef(90.0f + cuePitch * 180.0f / PI, 0.0f, 0.0f, 1.0f);
         glTranslatef(0.0f, hitDistance, 0.0f);
         glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0);
         glBindVertexArray(cueVAO);
         glDrawArrays(GL_TRIANGLES, 0, cueCoordIndex.size());
         glBindVertexArray(0);
@@ -180,7 +189,8 @@ void display(){
     GLfloat lightDiffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};
     GLfloat lightDiffuseShadow[] = {0.0f, 0.0f, 0.0f, 1.0f};
     GLfloat lightAmbient[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    GLfloat lightSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    GLfloat lightSpecular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat lightSpecularShadow[] = {0.0f, 0.0f, 0.0f, 1.0f};
     float bias[]={0.5f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.5f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.5f, 0.0f,
@@ -233,7 +243,7 @@ void display(){
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuseShadow);
     glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecularShadow);
     drawPlane(1);
     drawBalls(1);
     drawCue(1);
