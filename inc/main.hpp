@@ -1,7 +1,5 @@
 #ifndef __MAIN__
 #define __MAIN__
-#define WINDOW_WIDTH 1800
-#define WINDOW_HEIGHT 900
 #define g (9.8f)
 #define holeR (0.08f)
 #define edgeY (1.384f * 0.5f)
@@ -20,8 +18,6 @@
 #define kFail (0.25f)
 #define kSuccess (1.5f)
 #define cueK (0.02f)
-#define shadowWidth (WINDOW_WIDTH)
-#define shadowHeight (WINDOW_HEIGHT)
 extern int mode;
 extern int allowHit;
 void quatRotate(float p[], float wx, float wy, float wz, float t);

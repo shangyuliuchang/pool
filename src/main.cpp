@@ -11,6 +11,10 @@ using namespace std;
 #include"../inc/ball.hpp"
 #include"../inc/main.hpp"
 #include"../inc/calc.hpp"
+int WINDOW_WIDTH = 1800;
+int WINDOW_HEIGHT = 900;
+int shadowWidth = 1800;
+int shadowHeight = 900;
 int allowHit = 3, mouseState, keyState;
 float viewYaw = 0.0f, viewPitch = 0.0f, viewDistance = 1.5f, hitDistance = 0.0f, hitSpeed = 0.0f;
 float hitYaw = 0.0f, hitPitch = 0.0f, cuePitch = PI / 36.0f;
@@ -208,7 +212,7 @@ void display(){
     if(allowHit == 2){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(20.0f, 2.0f, 0.1f, 50.0f);
+        gluPerspective(20.0f, float(WINDOW_WIDTH) / WINDOW_HEIGHT, 0.1f, 50.0f);
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
@@ -216,7 +220,7 @@ void display(){
     }else{
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        gluPerspective(20.0f, 4.0f / 3.0f, 0.1f, 50.0f);
+        gluPerspective(20.0f, (float)WINDOW_WIDTH / WINDOW_HEIGHT / 1.5f, 0.1f, 50.0f);
         glViewport(0, -WINDOW_HEIGHT / 2, WINDOW_WIDTH, 1.5f * WINDOW_HEIGHT);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
@@ -364,45 +368,50 @@ void keyBoard(unsigned char key, int x, int y){
         cuePitch = 0.0f;
     }else if(key == 'r'){
         if(allowHit == 3) allowHit = 2;
+    }else if(key == 'w'){
+        mouseState = -1;
+        glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
     }
 }
 void keyUp(unsigned char key, int x, int y){
     keyState = 0;
 }
 void passiveMotion(int x, int y){
-    if(allowHit != 2){
-        if(keyState == ' '){
-            cuePitch += (WINDOW_HEIGHT / 2 - y) * 1e-2f;
-            if(cuePitch > PI * 0.5f) cuePitch = PI * 0.5f;
-            else if(cuePitch < -PI * 0.5f) cuePitch = -PI * 0.5f;
+    if(mouseState >= 0){
+        if(allowHit != 2){
+            if(keyState == ' '){
+                cuePitch += (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT* 10.0f;
+                if(cuePitch > PI * 0.5f) cuePitch = PI * 0.5f;
+                else if(cuePitch < -PI * 0.5f) cuePitch = -PI * 0.5f;
+            }else{
+                viewYaw -= (float)(x - WINDOW_WIDTH / 2) / WINDOW_HEIGHT;
+                viewPitch += (float)(y - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT;
+                if(viewYaw > 2.0f * PI)
+                    viewYaw -= 2.0f * PI;
+                else if(viewYaw < -2.0f * PI)
+                    viewYaw += 2.0f * PI;
+                if(viewPitch < 0.0f)
+                    viewPitch = 0.0f;
+                else if(viewPitch > 0.5f * PI)
+                    viewPitch = 0.5f * PI;
+                hitDistance = 0.0f;
+                hitSpeed = 0.0f;
+            }
         }else{
-            viewYaw -= (x - WINDOW_WIDTH / 2) * 1e-3f;
-            viewPitch += (y - WINDOW_HEIGHT / 2) * 1e-3f;
-            if(viewYaw > 2.0f * PI)
-                viewYaw -= 2.0f * PI;
-            else if(viewYaw < -2.0f * PI)
-                viewYaw += 2.0f * PI;
-            if(viewPitch < 0.0f)
-                viewPitch = 0.0f;
-            else if(viewPitch > 0.5f * PI)
-                viewPitch = 0.5f * PI;
-            hitDistance = 0.0f;
-            hitSpeed = 0.0f;
+            balls[0].x += (float)(x - WINDOW_WIDTH / 2) / WINDOW_HEIGHT * edgeY * 2.0f;
+            balls[0].y += -(float)(y - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT * edgeY * 2.0f;
+            if(balls[0].x > edgeX - balls[0].r) balls[0].x = edgeX - balls[0].r;
+            else if(balls[0].x < -edgeX + balls[0].r) balls[0].x = -edgeX + balls[0].r;
+            if(balls[0].y > edgeY - balls[0].r) balls[0].y = edgeY - balls[0].r;
+            else if(balls[0].y < -edgeY + balls[0].r) balls[0].y = -edgeY + balls[0].r;
         }
-    }else{
-        balls[0].x += (float)(x - WINDOW_WIDTH / 2) / WINDOW_WIDTH * edgeX * 2.0f;
-        balls[0].y += -(float)(y - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT * edgeY * 2.0f;
-        if(balls[0].x > edgeX - balls[0].r) balls[0].x = edgeX - balls[0].r;
-        else if(balls[0].x < -edgeX + balls[0].r) balls[0].x = -edgeX + balls[0].r;
-        if(balls[0].y > edgeY - balls[0].r) balls[0].y = edgeY - balls[0].r;
-        else if(balls[0].y < -edgeY + balls[0].r) balls[0].y = -edgeY + balls[0].r;
+        glutWarpPointer(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
     }
-    glutWarpPointer(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 }
 void motion(int x, int y){
     if(mouseState == 1){
         if(allowHit == 3){
-            hitSpeed = hitSpeed * 0.8f + (WINDOW_HEIGHT / 2 - y) * 2e-3f / calcTime * 0.2f;
+            hitSpeed = hitSpeed * 0.8f + (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT * 2.0f / calcTime * 0.2f;
             hitDistance += hitSpeed * calcTime;
             if(hitDistance > 0.0f){
                 if(hitSpeed > 10.0f) hitSpeed = 10.0f;
@@ -412,17 +421,17 @@ void motion(int x, int y){
         }
     }else if(mouseState == 2){
         if(allowHit != 2){
-            viewDistance += (y - WINDOW_HEIGHT / 2) * 0.01f;
-            if(viewDistance > 3.0f) viewDistance = 3.0f;
+            viewDistance += (float)(y - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT * 10.0f;
+            if(viewDistance > 5.0f) viewDistance = 5.0f;
             else if(viewDistance < 0.5f) viewDistance = 0.5f;
         }
-    }else{
+    }else if(mouseState == 3){
         if(allowHit == 3){
-            hitPitch += (WINDOW_HEIGHT / 2 - y) * 1e-2f;
+            hitPitch += (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT * 10.0f;
             if(hitPitch > PI / 4.0f) hitPitch = PI / 4.0f;
             else if(hitPitch < -PI / 4.0f) hitPitch = -PI / 4.0f;
             if(keyState == ' '){
-                hitYaw += (x - WINDOW_WIDTH / 2) * 1e-2f;
+                hitYaw += (float)(x - WINDOW_WIDTH / 2) / WINDOW_HEIGHT * 10.0f;
                 if(hitYaw > PI / 4.0f) hitYaw = PI / 4.0f;
                 else if(hitYaw < -PI / 4.0f) hitYaw = -PI / 4.0f;
             }
@@ -433,6 +442,7 @@ void motion(int x, int y){
 void mouse(int button, int state, int x, int y){
     int allowPlace;
     if(state == 0){
+        glutSetCursor(GLUT_CURSOR_NONE);
         mouseState = button + 1;
         if(allowHit == 2){
             allowPlace = 1;
@@ -540,13 +550,19 @@ void loadTex(unsigned int *tex, const char dir[]){
     stbi_image_free(data);
 }
 void genShadowTex(unsigned int *shadowTex){
-    glGenTextures(1, shadowTex);
     glBindTexture(GL_TEXTURE_2D, *shadowTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, shadowWidth, shadowHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+}
+void reshape(int width, int height){
+    WINDOW_WIDTH = width;
+    shadowWidth = width;
+    WINDOW_HEIGHT = height;
+    shadowHeight = height;
+    genShadowTex(&shadowTexture);
 }
 int main(int argc, char *argv[]){
     char dir[100];
@@ -561,6 +577,7 @@ int main(int argc, char *argv[]){
     glutCreateWindow("pool");
     glewInit();
     glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
     glutKeyboardFunc(keyBoard);
     glutKeyboardUpFunc(keyUp);
     glutMouseFunc(mouse);
@@ -580,6 +597,7 @@ int main(int argc, char *argv[]){
     genVAO(ballCoord, ballNorm, ballTex, ballCoordIndex, ballNormIndex, ballTexIndex, ballOrderedCoord, ballOrderedNorm, ballOrderedTex, &ballCoordBO, &ballNormBO, &ballTexBO, &ballVAO);
     genVAO(cueCoord, cueNorm, cueTex, cueCoordIndex, cueNormIndex, cueTexIndex, cueOrderedCoord, cueOrderedNorm, cueOrderedTex, &cueCoordBO, &cueNormBO, &cueTexBO, &cueVAO);
 
+    glGenTextures(1, &shadowTexture);
     genShadowTex(&shadowTexture);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
