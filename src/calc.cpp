@@ -291,19 +291,19 @@ int edgeCollision(float x, float y, float r, float *dx, float *dy){
         *dy = y - (edgeY + holeR);
         return 1;
     }else if(powf(x - (-holeD3), 2) + powf(y - (edgeY + holeR), 2) < powf(holeR + r, 2)){
-        *dx = x - (-2.0f * holeR);
+        *dx = x - (-holeD3);
         *dy = y - (edgeY + holeR);
         return 1;
     }else if(powf(x - (-holeD3), 2) + powf(y - (-edgeY - holeR), 2) < powf(holeR + r, 2)){
-        *dx = x - (-2.0f * holeR);
+        *dx = x - (-holeD3);
         *dy = y - (-edgeY - holeR);
         return 1;
     }else if(powf(x - (holeD3), 2) + powf(y - (edgeY + holeR), 2) < powf(holeR + r, 2)){
-        *dx = x - (2.0f * holeR);
+        *dx = x - (holeD3);
         *dy = y - (edgeY + holeR);
         return 1;
     }else if(powf(x - (holeD3), 2) + powf(y - (-edgeY - holeR), 2) < powf(holeR + r, 2)){
-        *dx = x - (2.0f * holeR);
+        *dx = x - (holeD3);
         *dy = y - (-edgeY - holeR);
         return 1;
     }else if(x < (-edgeX + r) && x > (-edgeX - r) && y > (-edgeY + holeD2) && y < (edgeY - holeD2)){
