@@ -21,6 +21,7 @@ float hitYaw = 0.0f, hitPitch = 0.0f, cuePitch = PI / 36.0f;
 float viewX = 0.0f, viewY = 0.0f, viewZ = 0.0f;
 float lightPM[16], lightVM[16];
 float calcTime = 0.02f;
+float tmpSpeed;
 unsigned int texture[16];
 unsigned int planeCoordBO, planeTexBO, planeNormBO, planeVAO;
 unsigned int cueCoordBO, cueTexBO, cueNormBO, cueVAO;
@@ -32,8 +33,7 @@ vector<float> cueOrderedCoord, cueOrderedNorm, cueOrderedTex;
 vector<float> planeCoord, planeNorm, planeTex, ballCoord, ballNorm, ballTex, cueCoord, cueNorm, cueTex;
 vector<unsigned int> planeCoordIndex, planeNormIndex, planeTexIndex, ballCoordIndex, ballNormIndex, ballTexIndex, cueNormIndex, cueCoordIndex, cueTexIndex;
 GLfloat color[4];
-struct timespec tStart;
-struct timespec tEnd;
+struct timespec tStart, tEnd;
 void quatRotate(float p[], float wx, float wy, float wz, float t){
     float q[4], w, tmp, mid[4];
     w = sqrtf(wx * wx + wy * wy + wz * wz);
@@ -404,8 +404,6 @@ void passiveMotion(int x, int y){
                     viewPitch = 0.0f;
                 else if(viewPitch > 0.5f * PI)
                     viewPitch = 0.5f * PI;
-                hitDistance = 0.0f;
-                hitSpeed = 0.0f;
             }
         }else{
             balls[0].x += (float)(x - WINDOW_WIDTH / 2) / WINDOW_HEIGHT * edgeY * 2.0f;
@@ -419,14 +417,20 @@ void passiveMotion(int x, int y){
     }
 }
 void motion(int x, int y){
+    float filterRatio;
     if(mouseState == 1){
         if(allowHit == 3){
-            hitSpeed = hitSpeed * 0.8f + (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT * 2.0f / calcTime * 0.2f;
+            filterRatio = expf(-calcTime / 0.02f);
+            tmpSpeed = tmpSpeed * filterRatio + (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT * 2.0f / calcTime * (1 - filterRatio);
+            hitSpeed = hitSpeed * filterRatio + tmpSpeed * (1 - filterRatio);
             hitDistance += hitSpeed * calcTime;
             if(hitDistance > 0.0f){
                 if(hitSpeed > 10.0f) hitSpeed = 10.0f;
                 hitBall(viewYaw + hitYaw, hitPitch, -hitSpeed * cosf(cuePitch) * cosf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * cosf(cuePitch) * sinf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * sinf(cuePitch));
                 allowHit = 0;
+                tmpSpeed = 0.0f;
+                hitSpeed = 0.0f;
+                hitDistance = 0.0f;
             }
         }
     }else if(mouseState == 2){
@@ -454,7 +458,10 @@ void mouse(int button, int state, int x, int y){
     if(state == 0){
         glutSetCursor(GLUT_CURSOR_NONE);
         mouseState = button + 1;
-        if(allowHit == 2){
+    }else{
+        mouseState = 0;
+        if(allowHit == 0) allowHit = 1;
+        else if(allowHit == 2){
             allowPlace = 1;
             for(int i=1;i<=15;i++){
                 if(powf(balls[0].x - balls[i].x, 2) + powf(balls[0].y - balls[i].y, 2) <= powf(2 * balls[0].r, 2)){
@@ -466,10 +473,10 @@ void mouse(int button, int state, int x, int y){
                 allowHit = 3;
             }
         }
-    }else{
-        mouseState = 0;
-        if(allowHit == 0) allowHit = 1;
     }
+    tmpSpeed = 0.0f;
+    hitSpeed = 0.0f;
+    hitDistance = 0.0f;
 }
 void readOBJ(const char dir[], vector<float> &c, vector<float> &n, vector<float> &t, vector<unsigned int> &ic, vector<unsigned int> &in, vector<unsigned int> &it){
     FILE *fp = fopen(dir, "r");
