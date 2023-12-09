@@ -420,7 +420,7 @@ void motion(int x, int y){
     float filterRatio;
     if(mouseState == 1){
         if(allowHit == 3){
-            filterRatio = expf(-calcTime / 0.02f);
+            filterRatio = expf(-calcTime / 0.03f);
             tmpSpeed = tmpSpeed * filterRatio + (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT * 2.0f / calcTime * (1 - filterRatio);
             hitSpeed = hitSpeed * filterRatio + tmpSpeed * (1 - filterRatio);
             hitDistance += hitSpeed * calcTime;
