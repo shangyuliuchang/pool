@@ -17,7 +17,7 @@ int shadowWidth = 1800;
 int shadowHeight = 900;
 int allowHit = 3, mouseState, keyState;
 float viewYaw = 0.0f, viewPitch = 0.0f, viewDistance = 1.5f, hitDistance = 0.0f, hitSpeed = 0.0f;
-float hitYaw = 0.0f, hitPitch = 0.0f, cuePitch = PI / 36.0f;
+float hitYaw = 0.0f, hitPitch = 0.0f, cuePitch, setCuePitch = PI / 36.0f, setHitPitch;
 float viewX = 0.0f, viewY = 0.0f, viewZ = 0.0f;
 float lightPM[16], lightVM[16];
 float calcTime = 0.02f;
@@ -299,6 +299,157 @@ void display(){
 
     glutSwapBuffers();
 }
+int secCrossCircle(float r, float x1, float y1, float x2, float y2){
+    float d1, d2, d3, prod, dis, p1, p2;
+    prod = x1 * (y2 - y1) - y1 * (x2 - x1);
+    d1 = sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    d2 = sqrtf(x1 * x1 + y1 * y1);
+    d3 = sqrtf(x2 * x2 + y2 * y2);
+    dis = prod / d1;
+    if(dis > r) return 0;
+    if(d2 > r + d1) return 0;
+    if(d3 > r + d1) return 0;
+    p1 = (x2 - x1) * x1 + (y2 - y1) * y1;
+    p2 = (x2 - x1) * x2 + (y2 - y1) * y2;
+    if(p1 * p2 < 0.0f) return 1;
+    if(d2 < r || d3 < r) return 1;
+    return 0;
+}
+int secCrossEllipse(float a, float b, float dirX, float dirY, float x1, float y1, float x2, float y2){
+    float dotProd, px, py, vx, vy, x1t, y1t, x2t, y2t;
+    dotProd = dirX * x1 + dirY * y1;
+    px = dotProd * dirX;
+    py = dotProd * dirY;
+    vx = x1 - px;
+    vy = y1 - py;
+    x1t = px / a * b + vx;
+    y1t = py / a * b + vy;
+    dotProd = dirX * x2 + dirY * y2;
+    px = dotProd * dirX;
+    py = dotProd * dirY;
+    vx = x2 - px;
+    vy = y2 - py;
+    x2t = px / a * b + vx;
+    y2t = py / a * b + vy;
+    return secCrossCircle(b, x1t, y1t, x2t, y2t);
+}
+int validCueWithEdge(float x, float y, float a, float b, float dirX, float dirY){
+    if(x > holeX + holeR * 0.5f) return 0;
+    if(x < -holeX - holeR * 0.5f) return 0;
+    if(y > edgeY + holeR) return 0;
+    if(y < -edgeY - holeR) return 0;
+    if(y < -edgeY && x > -edgeX + holeD2 && x < -holeD3) return 0;
+    if(y < -edgeY && x > holeD3 && x < edgeX - holeD2) return 0;
+    if(y > edgeY && x > -edgeX + holeD2 && x < -holeD3) return 0;
+    if(y > edgeY && x > holeD3 && x < edgeX - holeD2) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, -edgeX + holeD2 - x, -edgeY - y, -holeD3 - x, -edgeY - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, holeD3 - x, -edgeY - y, edgeX - holeD2 - x, -edgeY - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, edgeX - holeD2 - x, edgeY - y, holeD3 - x, edgeY - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, -holeD3 - x, edgeY - y, -edgeX + holeD2 - x, edgeY - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, edgeX - x, -edgeY + holeD2 - y, edgeX - x, edgeY - holeD2 - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, -edgeX - x, edgeY - holeD2 - y, -edgeX - x, -edgeY + holeD2 - y)) return 0;
+    for(float i=0.75f*PI;i>0.5f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -edgeX + holeD2 + holeR * cosf(i) - x, -edgeY - holeR + holeR * sinf(i) - y, -edgeX + holeD2 + holeR * cosf(i - 0.1f) - x, -edgeY - holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=0.5f*PI;i>0.25f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -holeD3 + holeR * cosf(i) - x, -edgeY - holeR + holeR * sinf(i) - y, -holeD3 + holeR * cosf(i - 0.1f) - x, -edgeY - holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=0.75f*PI;i>0.5f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, holeD3 + holeR * cosf(i) - x, -edgeY - holeR + holeR * sinf(i) - y, holeD3 + holeR * cosf(i - 0.1f) - x, -edgeY - holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=0.5f*PI;i>0.25f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, edgeX - holeD2 + holeR * cosf(i) - x, -edgeY - holeR + holeR * sinf(i) - y, edgeX - holeD2 + holeR * cosf(i - 0.1f) - x, -edgeY - holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=0.0f*PI;i>-0.25f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -edgeX - holeR + holeR * cosf(i) - x, -edgeY + holeD2 + holeR * sinf(i) - y, -edgeX - holeR + holeR * cosf(i - 0.1f) - x, -edgeY + holeD2 + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=1.25f*PI;i>1.0f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, edgeX + holeR + holeR * cosf(i) - x, -edgeY + holeD2 + holeR * sinf(i) - y, edgeX + holeR + holeR * cosf(i - 0.1f) - x, -edgeY + holeD2 + holeR * sinf(i - 0.1f) - y)) return 0;
+
+    for(float i=-0.25f*PI;i>-0.5f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, edgeX - holeD2 + holeR * cosf(i) - x, edgeY + holeR + holeR * sinf(i) - y, edgeX - holeD2 + holeR * cosf(i - 0.1f) - x, edgeY + holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=-0.5f*PI;i>-0.75f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, holeD3 + holeR * cosf(i) - x, edgeY + holeR + holeR * sinf(i) - y, holeD3 + holeR * cosf(i - 0.1f) - x, edgeY + holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=-0.25f*PI;i>-0.5f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -holeD3 + holeR * cosf(i) - x, edgeY + holeR + holeR * sinf(i) - y, -holeD3 + holeR * cosf(i - 0.1f) - x, edgeY + holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=-0.5f*PI;i>-0.75f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -edgeX + holeD2 + holeR * cosf(i) - x, edgeY + holeR + holeR * sinf(i) - y, -edgeX + holeD2 + holeR * cosf(i - 0.1f) - x, edgeY + holeR + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=1.0f*PI;i>0.75f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, edgeX + holeR + holeR * cosf(i) - x, edgeY - holeD2 + holeR * sinf(i) - y, edgeX + holeR + holeR * cosf(i - 0.1f) - x, edgeY - holeD2 + holeR * sinf(i - 0.1f) - y)) return 0;
+    for(float i=0.25f*PI;i>0.0f*PI;i-=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -edgeX - holeR + holeR * cosf(i) - x, edgeY - holeD2 + holeR * sinf(i) - y, -edgeX - holeR + holeR * cosf(i - 0.1f) - x, edgeY - holeD2 + holeR * sinf(i - 0.1f) - y)) return 0;
+
+    for(float i=-1.25f*PI;i<-0.25f*PI;i+=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -holeX + holeR * 0.5f * cosf(i) - x, -holeY + holeR * 0.5f * sinf(i) - y, -holeX + holeR * 0.5f * cosf(i + 0.1f) - x, -holeY + holeR * 0.5f * sinf(i + 0.1f) - y)) return 0;
+    for(float i=-0.75f*PI;i<0.25f*PI;i+=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, holeX + holeR * 0.5f * cosf(i) - x, -holeY + holeR * 0.5f * sinf(i) - y, holeX + holeR * 0.5f * cosf(i + 0.1f) - x, -holeY + holeR * 0.5f * sinf(i + 0.1f) - y)) return 0;
+    for(float i=-0.25f*PI;i<0.75f*PI;i+=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, holeX + holeR * 0.5f * cosf(i) - x, holeY + holeR * 0.5f * sinf(i) - y, holeX + holeR * 0.5f * cosf(i + 0.1f) - x, holeY + holeR * 0.5f * sinf(i + 0.1f) - y)) return 0;
+    for(float i=0.25f*PI;i<1.25f*PI;i+=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, -holeX + holeR * 0.5f * cosf(i) - x, holeY + holeR * 0.5f * sinf(i) - y, -holeX + holeR * 0.5f * cosf(i + 0.1f) - x, holeY + holeR * 0.5f * sinf(i + 0.1f) - y)) return 0;
+
+    for(float i=1.0f*PI;i<2.0f*PI;i+=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, holeR * 0.5f * cosf(i) - x, -holeY - 0.5f * holeR * 0.5f + holeR * 0.5f * sinf(i) - y, holeR * 0.5f * cosf(i + 0.1f) - x, -holeY - 0.5f * holeR * 0.5f + holeR * 0.5f * sinf(i + 0.1f) - y)) return 0;
+    for(float i=0.0f*PI;i<1.0f*PI;i+=0.1f)
+        if(secCrossEllipse(a, b, dirX, dirY, holeR * 0.5f * cosf(i) - x, holeY + 0.5f * holeR * 0.5f + holeR * 0.5f * sinf(i) - y, holeR * 0.5f * cosf(i + 0.1f) - x, holeY + 0.5f * holeR * 0.5f + holeR * 0.5f * sinf(i + 0.1f) - y)) return 0;
+    
+    if(secCrossEllipse(a, b, dirX, dirY, -holeD3 * 0.5f - x, -edgeY - holeR + holeD3 * 0.5f - y, -holeR * 0.5f - x, -edgeY - holeR * 0.5f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, holeR * 0.5f - x, -edgeY - holeR * 0.5f - y, holeD3 * 0.5f - x, -edgeY - holeR + holeD3 * 0.5f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, holeD3 * 0.5f - x, edgeY + holeR - holeD3 * 0.5f - y, holeR * 0.5f - x, edgeY + holeR * 0.5f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, -holeR * 0.5f - x, edgeY + holeR * 0.5f - y, -holeD3 * 0.5f - x, edgeY + holeR - holeD3 * 0.5f - y)) return 0;
+
+    if(secCrossEllipse(a, b, dirX, dirY, -edgeX - holeR + holeD3 * 0.5f - x, -edgeY + holeD2 - holeD3 * 0.5f - y, -holeX - holeD3 * 0.25f - x, -holeY + holeD3 * 0.25f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, -holeX + holeD3 * 0.25f - x, -holeY - holeD3 * 0.25f - y, -edgeX + holeD2 - holeD3 * 0.5f - x, -edgeY - holeR + holeD3 * 0.5f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, edgeX - holeD2 + holeD3 * 0.5f - x, -edgeY - holeR + holeD3 * 0.5f - y, holeX - holeD3 * 0.25f - x, -holeY - holeD3 * 0.25f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, holeX + holeD3 * 0.25f - x, -holeY + holeD3 * 0.25f - y, edgeX + holeR - holeD3 * 0.5f - x, -edgeY + holeD2 - holeD3 * 0.5f - y)) return 0;
+
+    if(secCrossEllipse(a, b, dirX, dirY, edgeX + holeR - holeD3 * 0.5f - x, edgeY - holeD2 + holeD3 * 0.5f - y, holeX + holeD3 * 0.25f - x, holeY - holeD3 * 0.25f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, holeX - holeD3 * 0.25f - x, holeY + holeD3 * 0.25f - y, edgeX - holeD2 + holeD3 * 0.5f - x, edgeY + holeR - holeD3 * 0.5f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, -edgeX + holeD2 - holeD3 * 0.5f - x, edgeY + holeR - holeD3 * 0.5f - y, -holeX + holeD3 * 0.25f - x, holeY + holeD3 * 0.25f - y)) return 0;
+    if(secCrossEllipse(a, b, dirX, dirY, -holeX - holeD3 * 0.25f - x, holeY - holeD3 * 0.25f - y, -edgeX - holeR + holeD3 * 0.5f - x, edgeY - holeD2 + holeD3 * 0.5f - y)) return 0;
+
+    return 1;
+}
+int validCue(){
+    float topX, topY, topZ, dirX, dirY, dirZ, diffX, diffY, diffZ;
+    float dis, cosAngle, slope, secX, secY;
+    float a, b;
+    topX = balls[0].x + balls[0].r * cosf(hitPitch) * cosf(hitYaw + viewYaw);
+    topY = balls[0].y + balls[0].r * cosf(hitPitch) * sinf(hitYaw + viewYaw);
+    topZ = balls[0].r * sinf(hitPitch);
+    dirX = cosf(cuePitch) * cosf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f));
+    dirY = cosf(cuePitch) * sinf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f));
+    dirZ = sinf(cuePitch);
+    for(int i=1;i<=15;i++){
+        diffX = balls[i].x - topX;
+        diffY = balls[i].y - topY;
+        diffZ = -topZ;
+        dis = sqrtf(diffX * diffX + diffY * diffY + diffZ * diffZ);
+        cosAngle = (dirX * diffX + dirY * diffY + dirZ * diffZ) / dis;
+        if(cosAngle > 0.0f && sqrtf(1.0f - cosAngle * cosAngle) * dis < 0.0094f * dis + 5e-3f + balls[0].r) return 0;
+    }
+    secX = topX + (38e-3f - balls[0].r - topZ) / tanf(cuePitch) * cosf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f));
+    secY = topY + (38e-3f - balls[0].r - topZ) / tanf(cuePitch) * sinf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f));
+    dis = (38e-3f - balls[0].r - topZ) / sinf(cuePitch); 
+    b = 0.0094f * dis + 5e-3f;
+    a = b / sinf(cuePitch);
+    dirX = cosf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f));
+    dirY = sinf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f));
+    return validCueWithEdge(secX, secY, a, b, dirX, dirY);
+}
+void limitCuePitch(){
+    float lower, upper;
+    cuePitch = setCuePitch;
+    hitPitch = setHitPitch;
+    if(cuePitch > hitPitch + 0.5f * PI)
+        hitPitch = cuePitch - 0.5f * PI;
+    if(validCue()) return;
+    lower = cuePitch;
+    upper = PI * 0.5f;
+    for(int i=0;i<10;i++){
+        cuePitch = (upper + lower) * 0.5f;
+        hitPitch = setHitPitch;
+        if(cuePitch > hitPitch + 0.5f * PI)
+            hitPitch = cuePitch - 0.5f * PI;
+        if(validCue()) upper = cuePitch;
+        else lower = cuePitch;
+    }
+}
 void movement(int input){
     clock_gettime(CLOCK_MONOTONIC, &tEnd);
     if((tEnd.tv_sec - tStart.tv_sec) + (tEnd.tv_nsec - tStart.tv_nsec) * 1e-9f > calcTime - 0.005f){
@@ -322,6 +473,10 @@ void movement(int input){
         if(allowHit == 2 && balls[0].x < edgeX){
             allowHit = 3;
         }
+    }
+
+    if(allowHit == 3){
+        limitCuePitch();
     }
 
     display();
@@ -374,8 +529,8 @@ void keyBoard(unsigned char key, int x, int y){
     }else if(key == 'q'){
         exit(0);
     }else if(key == '0'){
-        hitYaw = hitPitch = 0.0f;
-        cuePitch = 0.0f;
+        hitYaw = setHitPitch = 0.0f;
+        setCuePitch = PI / 36.0f;
     }else if(key == 'r'){
         if(allowHit == 3) allowHit = 2;
     }else if(key == 'w'){
@@ -390,9 +545,9 @@ void passiveMotion(int x, int y){
     if(mouseState >= 0){
         if(allowHit != 2){
             if(keyState == ' '){
-                cuePitch += (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT* 10.0f;
-                if(cuePitch > PI * 0.5f) cuePitch = PI * 0.5f;
-                else if(cuePitch < -PI * 0.5f) cuePitch = -PI * 0.5f;
+                setCuePitch += (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT* 10.0f;
+                if(setCuePitch > PI * 0.5f) setCuePitch = PI * 0.5f;
+                else if(setCuePitch < 1e-2f) setCuePitch = 1e-2f;
             }else{
                 viewYaw -= (float)(x - WINDOW_WIDTH / 2) / WINDOW_HEIGHT;
                 viewPitch += (float)(y - WINDOW_HEIGHT / 2) / WINDOW_HEIGHT;
@@ -431,6 +586,10 @@ void motion(int x, int y){
                 tmpSpeed = 0.0f;
                 hitSpeed = 0.0f;
                 hitDistance = 0.0f;
+                for(int i=1;i<=15;i++)
+                    if(balls[i].x > edgeX + 0.2f && balls[i].z > -0.1f){
+                        balls[i].z = -0.2f;
+                    }
             }
         }
     }else if(mouseState == 2){
@@ -441,9 +600,9 @@ void motion(int x, int y){
         }
     }else if(mouseState == 3){
         if(allowHit == 3){
-            hitPitch += (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT * 10.0f;
-            if(hitPitch > PI / 4.0f) hitPitch = PI / 4.0f;
-            else if(hitPitch < -PI / 4.0f) hitPitch = -PI / 4.0f;
+            setHitPitch += (float)(WINDOW_HEIGHT / 2 - y) / WINDOW_HEIGHT * 10.0f;
+            if(setHitPitch > PI / 4.0f) setHitPitch = PI / 4.0f;
+            else if(setHitPitch < -PI / 4.0f) setHitPitch = -PI / 4.0f;
             if(keyState == ' '){
                 hitYaw += (float)(x - WINDOW_WIDTH / 2) / WINDOW_HEIGHT * 10.0f;
                 if(hitYaw > PI / 4.0f) hitYaw = PI / 4.0f;
