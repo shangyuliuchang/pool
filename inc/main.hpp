@@ -18,7 +18,10 @@
 #define kFail (0.25f)
 #define kSuccess (1.5f)
 #define cueK (0.02f)
+#define cueD (0.01f)
+#define cueHeadR (0.013f)
 extern int mode;
 extern int allowHit;
+extern float recHitYaw, recHitPitch, recHitVx, recHitVy, recHitVz;
 void quatRotate(float p[], float wx, float wy, float wz, float t);
 #endif

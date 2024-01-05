@@ -33,6 +33,8 @@ vector<float> cueOrderedCoord, cueOrderedNorm, cueOrderedTex;
 vector<float> planeCoord, planeNorm, planeTex, ballCoord, ballNorm, ballTex, cueCoord, cueNorm, cueTex;
 vector<unsigned int> planeCoordIndex, planeNormIndex, planeTexIndex, ballCoordIndex, ballNormIndex, ballTexIndex, cueNormIndex, cueCoordIndex, cueTexIndex;
 GLfloat color[4];
+vector<ball> recBalls;
+float recHitYaw, recHitPitch, recHitVx, recHitVy, recHitVz;
 struct timespec tStart, tEnd;
 void quatRotate(float p[], float wx, float wy, float wz, float t){
     float q[4], w, tmp, mid[4];
@@ -536,6 +538,12 @@ void keyBoard(unsigned char key, int x, int y){
     }else if(key == 'w'){
         mouseState = -1;
         glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
+    }else if(key == 'u'){
+        if(recBalls.size() == 16){
+            for(int i=0;i<=15;i++) balls[i] = recBalls[i];
+            hitBall(recHitYaw, recHitPitch, recHitVx, recHitVy, recHitVz);
+            allowHit = 0;
+        }
     }
 }
 void keyUp(unsigned char key, int x, int y){
@@ -571,8 +579,19 @@ void passiveMotion(int x, int y){
         glutWarpPointer(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
     }
 }
+float calcAngleCalib(float theta){
+    float beta, dir;
+    if(theta < 0.0f) dir = -1.0f;
+    else dir = 1.0f;
+    theta = fabsf(theta);
+    beta = atanf(cueHeadR * sinf(theta) / (balls[0].r + cueHeadR * cosf(theta)));
+    if(theta - beta > asinf(cueD * 0.5f / cueHeadR)){
+        beta = acosf(sinf(theta) - cueD * 0.5f / balls[0].r) - PI * 0.5f + theta;
+    }
+    return beta * dir;
+}
 void motion(int x, int y){
-    float filterRatio;
+    float filterRatio, yawCalib, pitchCalib;
     if(mouseState == 1){
         if(allowHit == 3){
             filterRatio = expf(-calcTime / 0.03f);
@@ -581,7 +600,11 @@ void motion(int x, int y){
             hitDistance += hitSpeed * calcTime;
             if(hitDistance > 0.0f){
                 if(hitSpeed > 10.0f) hitSpeed = 10.0f;
-                hitBall(viewYaw + hitYaw, hitPitch, -hitSpeed * cosf(cuePitch) * cosf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * cosf(cuePitch) * sinf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * sinf(cuePitch));
+                recBalls.clear();
+                for(int i=0;i<=15;i++) recBalls.push_back(balls[i]);
+                yawCalib = calcAngleCalib(hitYaw + asinf(sinf(hitYaw) * balls[0].r / 0.2f));
+                pitchCalib = calcAngleCalib(hitPitch - cuePitch);
+                hitBall(viewYaw + hitYaw - yawCalib, hitPitch - pitchCalib, -hitSpeed * cosf(cuePitch) * cosf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * cosf(cuePitch) * sinf(viewYaw - asinf(sinf(hitYaw) * balls[0].r / 0.2f)), -hitSpeed * sinf(cuePitch));
                 allowHit = 0;
                 tmpSpeed = 0.0f;
                 hitSpeed = 0.0f;

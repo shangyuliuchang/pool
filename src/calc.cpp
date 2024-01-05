@@ -13,6 +13,12 @@ void hitBall(float yaw, float pitch, float vx, float vy, float vz){
     int state1, state2, state3, state4, reject;
     float frictionAngle, frictionAngle2;
     ball tmpBall;
+    recHitYaw = yaw;
+    recHitPitch = pitch;
+    recHitVx = vx;
+    recHitVy = vy;
+    recHitVz = vz;
+
     rx = balls[0].r * cosf(pitch) * cosf(yaw);
     ry = balls[0].r * cosf(pitch) * sinf(yaw);
     rz = balls[0].r * sinf(pitch);
